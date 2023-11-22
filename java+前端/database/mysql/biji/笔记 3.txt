@@ -1,0 +1,76 @@
+1、事务
+	是作为数据库的最小逻辑单元来执行的，在一个事务里，所有的操作要么同时执行，要么同时都不执行，从而保证数据的安全一致。
+
+	四大特性ACID
+	Atomicity：原子性，即每个事务都已经是一个最小的单元了，事务中的操作不可以再拆分，它们只能作为一个整体向数据库提交或回滚。
+	Consistency：一致性，即事务执行前后，所有数据的状态必须保持一致。
+	Isolation：隔离性，即并发事务之间相互隔离、独立，它不会以任何方式依赖或影响其他事务。
+	Durability：永久性，事务一旦提交，永久生效
+
+2、使用事务
+	手动开启事务：begin或start transaction
+
+	提交事务：commit
+
+	回滚事务：rollback
+
+MySQL中默认每条SQL语句都是一个单独的事务，并且自动提交，可以通过设置默认提交方式来改变它
+	set autocommit = 0|1
+	【0为默认不提交，1为默认提交】
+
+3、视图
+创建视图语法
+	create view 视图名
+	as
+	查询语句
+
+删除视图的语法
+	drop view 视图名
+
+查询视图的语法与查询表的语法一样
+
+4、索引
+
+建立索引的语法
+	create [unique|fulltext] index 索引名 on 表名(列名1[,列名2])
+
+删除索引的语法
+	drop index 索引名 on 表名
+
+
+5、备份
+	把建表语句和插入数据的语句以SQL文件的方式导出来
+
+	mysqldump命令
+	mysqldump [options] -u 用户名 -p密码 [-h 主机IP地址] 数据库名称 表名1,表名2
+>文件存储路径
+	【属于DOS命令，必须在登录之前使用】
+
+6、恢复
+	mysql命令【DOS命令】
+	mysql -u 用户名 -p密码 数据库名 <文件路径
+
+	source命令【必须先登录选择数据库】
+	source 文件名
+
+7、导出数据
+	select语句
+	into outfile 文件名
+
+8、导入数据
+	load data infile 文件名 into table 表名
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

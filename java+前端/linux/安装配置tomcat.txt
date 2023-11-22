@@ -1,0 +1,66 @@
+#1、解压：
+tar -zxvf apache-tomcat-8.x.x.tar.gz
+
+#2、重命名：
+mv apache-tomcat-8.x.x tomcat
+
+#3、启动：
+cd tomcat/bin 
+sh startup.sh
+ | ./startup.sh
+查看启动日志
+tail -f logs/catalina.out
+Ctrl+c 退出
+
+#4、停止：
+sh shutdown.sh | ./shutdown.sh
+
+#5、打开8080端口:
+6.x:iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+7.x:firewall-cmd --zone=public --add-port=8080/tcp --permanent 
+firewall-cmd --zone=public --add-port=3306/tcp --permanent 
+（--permanent永久生效，没有此参数重启后失效） 
+firewall-cmd --zone=public --add-port=9090/tcp --permanent 
+ 
+
+#6、保存规则到文件:
+6.x:service iptables save
+
+7.x:firewall-cmd --reload
+
+#7、查看规则
+6.x:iptables -L INPUT --line-numbers
+7.x:firewall-cmd --zone=public --list-ports
+
+#8、删除规则
+6.x:iptables -D INPUT -p tcp --dport 3306 -j ACCEPT
+7.x:firewall-cmd --zone= public --remove-port=3306/tcp --permanent
+
+#9、修改tomcat-users.xml：(Tomcat7.0只需设置manager-gui)
+<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<user username="admin" password="admin" roles="admin-gui,manager-gui"/>
+
+Tomcat8.5.x在/webapps/manager/META-INF/context.xml里注释标签：
+<!--   <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1|\d+\.\d+\.\d+\.\d+" />  -->
+
+#关闭防火墙：
+service iptables stop|start|restart
+systemctl stop|start|restart firewalld
+
+
+
+#windows测试
+telnet ip port
+#不能使用就在控制面板开启telnet客户端
+控制面板->程序和功能->启用或关闭windows功能->telnet
+
+
+Eclipse配置Tomcat报错：could not load the tomcat server configuration
+原因：没有复制tomcat\conf下的文件到eclipse下的server
+解决：把配置文件从/opt/tomcat/conf文件夹中复制到
+<workspace>/Servers/<Tomcat version>Server at localhost-config下面
+
+添加Server成功了，但是无法部署web程序
+原因：是没有给Tomcat赋予权限
+解决：chmod -R 755 /opt/tomcat  

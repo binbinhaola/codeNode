@@ -1,0 +1,32 @@
+
+jQuery的ajax方法：
+
+$.ajax(settings)：可以灵活的自定义请求
+	settings的写法：{XXX : XXX , YYY : YYY}【详情参照帮助文档】
+
+
+$.get(url,data,callBack)：	发送异步的get请求，参数有：
+	url：请求的路径，通常是一个servlet
+	data：请求的参数，格式可以写成 name=value&name1=value1 或者 {name:value,name1:value1}
+	callback：回调函数
+
+	例如：
+	$("LoginServlet",{username:"admin",password:"123456"},function(data){
+		//这里的data就是servlet写给客户端的内容。
+	});
+
+$.post(url,data,callBack)：	发送异步的post请求，使用方式与$.get()一样。
+
+$.getJSON(url,data,callBack)：	发送异步的get请求，使用方式与$.get()一样。
+				
+				【注意：返回的数据必须是json格式，且在回调函数中能自动转成json对象】
+
+$(selector).load()：		远程加载数据到指定的元素中。
+
+		例如
+		$("#content").load("DataServlet");该代码可以把DataServlet写给客户端的数据加载到id为content的元素中
+
+
+
+
+

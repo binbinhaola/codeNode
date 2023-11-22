@@ -1,0 +1,20 @@
+(1)在用户主目录下递归创建 bdqn/java/javaEE/ 文件目录。
+ 命令：mkdir -p bdqn/java/javaEE
+(2)进入bdqn/java/javaEE/目录，并创建temp/文件目录。
+ 命令：cd bdqn/java/javaEE/
+(3)在temp目录下新建myInfo.txt文件。
+ 命令：touch myInfo.txt
+(4) myInfo.txt文件中增加以下内容，编辑完成后保存文件。
+ 命令：vi myInfo.txt
+ 输入以下内容：
+ Hello!I am a java enginner.
+ Hello!I am a hadoop enginner.
+ I love java.I love life.
+(5)将myInfo.txt第二行中的hadoop替换成mongoDB，并保存文件。
+ 命令：/%s/hadoop/mongoDB
+(6)在myInfo.txt 第二行到第三行直接插入以下语句，编辑完成后保存文件。
+ 命令：使用vi打开文件插入Linux is fun.
+(8)查看myinfo.txt的前二行信息。
+ 命令：head -2 myInfo.txt 
+(9)将bdqn/java/javaEE/temp/myinfo.txt 重命名为wangmingInfo.txt。
+ 命令：mv myInfo.txt wangmingInfo.txt

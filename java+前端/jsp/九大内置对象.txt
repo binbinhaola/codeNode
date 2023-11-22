@@ -1,0 +1,24 @@
+不经常使用的内置对象
+pageContext
+config
+page
+exception
+******************************************
+application
+
+session
+out
+response
+request
+
+===============
+
+解决乱码方法：
+1.改变request取出来的数据的编码
+
+String name=request.getParameter("userName");
+name=new String(name.getBytes("IOS-8859-1"),"utf-8");
+
+2.设置url的编码格式
+在tomcat的配置文件中修改 URIEncoding="UTF-8";
+

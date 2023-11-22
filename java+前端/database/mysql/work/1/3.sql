@@ -1,0 +1,19 @@
+CREATE TABLE student(
+	studentNo INT(4) NOT NULL PRIMARY KEY COMMENT'学号',
+	loginPad VARCHAR(20) NOT NULL COMMENT'密码',
+	studentName VARCHAR(50) NOT NULL COMMENT'姓名',
+	sex CHAR(2) NOT NULL COMMENT'性别',
+	gradeID INT(4) UNSIGNED COMMENT'年级编号',
+	phone VARCHAR(50) COMMENT'电话',
+	address VARCHAR(255) COMMENT'地址',
+	bornDate DATETIME COMMENT'出生日期',
+	email VARCHAR(50) COMMENT'邮件帐号',
+	idnetityCard VARCHAR(50) COMMENT'身份证号'
+	
+) COMMENT '学生信息表' CHARSET='utf8'
+
+CREATE TABLE grade(
+	gradeID INT(4) NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT'年级编号',
+	gradeName VARCHAR(50) NOT NULL COMMENT'年级名称'
+	
+)COMMENT '年级表' CHARSET='utf8'

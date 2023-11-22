@@ -1,0 +1,60 @@
+一、EL表达式
+1、为什么需要EL表达式？
+ 
+2、EL简介
+
+3、语法：${ EL表达式 }
+1）使用变量名获取值，变量名即存储在page、request、session、application中的键
+	request.setAttribute("name","admin");
+	${ name }
+
+2）如果保存的对象，则通过"."或"[]"获取属性值
+	${user.name}
+	${user["name"]}
+注意：
+a- 如果属性名中包含特殊字符必须使用"[]"
+b- 使用"[]"访问对象属性时必须加引号
+c- "[]"还可以直接访问数组和集合元素
+
+4、EL运算符
+
+5、EL隐式对象
+1）作用域访问对象：与JSP作用域对应，获取存储在page、request、session、application中的数据
+	pageScope，requestScope，sessionScope，applicationScope
+
+2）参数访问对象：用于获取页面请求参数（表单和URL），与request.getParameter()/getParameterValues()对应
+	param，paramValues
+
+二、JSTL
+1、为什么需要JSTL？
+
+2、JSTL环境准备：
+1）jar包
+2）指令 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+3、JSTL核心标签库
+1）通用标签
+	<c:set>
+	<c:out>
+	<c:remove>
+
+2）条件标签
+	<c:if>
+	<c:choose>
+
+3）迭代标签
+	<c:forEach>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

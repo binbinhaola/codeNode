@@ -1,0 +1,363 @@
+打开一个cmd窗口，使用cd命令切换到指定目录
+（D:\redis-2.4.5|D:\Program Files\Redis）
+运行 redis-server.exe redis.conf 
+
+
+重新打开一个cmd窗口，使用cd命令切换到指定目录（D:\dev\redis-x.x.x）
+运行 redis-cli.exe -h startym.cn -p 6379(6388) -a password (root123star)
+其中127.0.0.1是本地ip，6379是redis服务端的默认端口,密码默认空
+不输入ip和端口默认本机6379
+
+
+Redis常用命令集(http://doc.redisfans.com/)
+
+1）连接操作命令
+    
+    ping：检查连接
+    quit：关闭连接（connection）
+    auth：简单密码认证
+    help cmd： 查看cmd帮助，例如：help quit
+
+2）持久化
+
+    save：将数据同步保存到磁盘
+    bgsave：将数据异步保存到磁盘
+    lastsave：返回上次成功将数据保存到磁盘的Unix时戳
+    shundown：将数据同步保存到磁盘，然后关闭服务
+    flushdb   // 清除当前数据库的所有keys
+    flushall  // 清除所有数据库的所有keys
+
+3）远程服务控制
+
+    info：提供服务器的信息和统计
+    monitor：实时转储收到的请求
+    slaveof：改变复制策略设置
+    config：在运行时配置Redis服务器
+
+
+4）对value操作的命令
+    查看keys个数
+    keys *      // 查看所有keys
+    keys prefix_*     // 查看前缀为"prefix_"的所有keys
+
+    exists(key)：确认一个key是否存在
+    del(key)：删除一个key
+    type(key)：返回值的类型
+    keys(pattern)：返回满足给定pattern的所有key
+    randomkey：随机返回key空间的一个
+    keyrename(oldname, newname)：重命名key
+    dbsize：返回当前数据库中key的数目
+    expire：设定一个key的活动时间（s）
+    ttl：获得一个key的活动时间
+    select(index)：按索引查询
+    move(key, dbindex)：移动当前数据库中的key到dbindex数据库
+    flushdb：删除当前选择数据库中的所有key
+    flushall：删除所有数据库中的所有key
+
+
+5）String
+
+    set(key, value)：给数据库中名称为key的string赋予值value
+    get(key)：返回数据库中名称为key的string的value
+    getset(key, value)：给名称为key的string赋予上一次的value
+    mget(key1, key2,…, key N)：返回库中多个string的value
+    setnx(key, value)：添加string，名称为key，值为value
+    setex(key, time, value)：向库中添加string，设定过期时间time
+    mset(key N, value N)：批量设置多个string的值
+    msetnx(key N, value N)：如果所有名称为key i的string都不存在
+    incr(key)：名称为key的string增1操作
+    incrby(key, integer)：名称为key的string增加integer
+    decr(key)：名称为key的string减1操作
+    decrby(key, integer)：名称为key的string减少integer
+    append(key, value)：名称为key的string的值附加value
+    substr(key, start, end)：返回名称为key的string的value的子串
+
+
+6）List:存集合,可重复
+
+    rpush(key, value)：在名称为key的list尾添加一个值为value的元素
+    lpush(key, value)：在名称为key的list头添加一个值为value的 元素
+    llen(key)：返回名称为key的list的长度
+    lrange(key, start, end)：返回名称为key的list中start至end之间的元素
+    ltrim(key, start, end)：截取名称为key的list
+    lindex(key, index)：返回名称为key的list中index位置的元素
+    lset(key, index, value)：给名称为key的list中index位置的元素赋值
+    lrem(key, count, value)：删除count个key的list中值为value的元素
+    lpop(key)：返回并删除名称为key的list中的首元素
+    rpop(key)：返回并删除名称为key的list中的尾元素
+    blpop(key1, key2,… key N, timeout)：lpop命令的block版本。
+    brpop(key1, key2,… key N, timeout)：rpop的block版本。
+    rpoplpush(srckey, dstkey)：返回并删除名称为srckey的list的尾元素，并将该元素添加到名称为dstkey的list的头部
+
+
+7）Set:存集合,不可重复
+
+    sadd(key, member)：向名称为key的set中添加元素member
+    srem(key, member) ：删除名称为key的set中的元素member
+    spop(key) ：随机返回并删除名称为key的set中一个元素
+    smove(srckey, dstkey, member) ：移到集合元素
+    scard(key) ：返回名称为key的set的基数
+    sismember(key, member) ：member是否是名称为key的set的元素
+    sinter(key1, key2,…key N) ：求交集
+    sinterstore(dstkey, (keys)) ：求交集并将交集保存到dstkey的集合
+    sunion(key1, (keys)) ：求并集
+    sunionstore(dstkey, (keys)) ：求并集并将并集保存到dstkey的集合
+    sdiff(key1, (keys)) ：求差集
+    sdiffstore(dstkey, (keys)) ：求差集并将差集保存到dstkey的集合
+    smembers(key) ：返回名称为key的set的所有元素
+    srandmember(key) ：随机返回名称为key的set的一个元素
+
+
+8）ZSet:有序集合,不可重复
+
+    zadd(key, member score)：添加元素(score用来指定排序规则，数字越小代表值越小)
+    zrange(key start stop [WITHSCORES]) ：获取索引区间内的元素
+	ZRANGE zset 0 -1 WITHSCORES：显示整个有序集成员
+	ZRANGE zset 1 2 WITHSCORES：显示有序集下标区间 1 至 2 的成员
+    zrangebyscore ：获取分数区间内的元素
+        zrangebyscore zset -inf +inf ：显示整个有序集成员
+    zrem ：删除元素
+    zcard ：获取集合中元素个数
+    zincrby ：增减元素的score
+    zcount ： 获取分数区间内元素个数
+    zrank : 获取项在zset中的索引
+    zscore ：获取元素的分数
+    zrevrange ：获取索引区间内的元素
+    zrevrangebyscore：获取分数区间内的元素
+    zremrangebyrank：删除索引区间内的元素
+    zremrangebyscore：删除分数区间内的元素
+    zinterstore：交集
+    zunionstore：并集
+  
+9）Hash:存对象hset user id 1 | hset user name admin
+
+    hset(key, field, value)：向名称为key的hash中添加元素field
+    hget(key, field)：返回名称为key的hash中field对应的value
+    hmget(key, (fields))：返回名称为key的hash中field i对应的value
+    hmset(key, (fields))：向名称为key的hash中添加元素field 
+    hincrby(key, field, integer)：将名称为key的hash中field的value增加integer
+    hexists(key, field)：名称为key的hash中是否存在键为field的域
+    hdel(key, field)：删除名称为key的hash中键为field的域
+    hlen(key)：返回名称为key的hash中元素个数
+    hkeys(key)：返回名称为key的hash中所有键
+    hvals(key)：返回名称为key的hash中所有键对应的value
+    hgetall(key)：返回名称为key的hash中所有的键（field）及其对应的value
+
+
+
+Redis高级应用
+1、安全性
+    设置客户端连接后进行任何操作指定前需要密码，一个外部用户可以再一秒钟进行150W次访问，具体操作密码修改设置redis.conf里面的requirepass属性给予密码
+
+2、主从复制
+    做这个操作的时候准备两个虚拟机，ip分别是192.168.15.128和192.168.15.133
+    通过主从复制可以允许多个slave server拥有和master server相同的数据库副本
+    主从复制的配置十分简单：把下面这行加入到从服务器的配置文件中即可。
+	slaveof 192.168.15.128 6379
+	masterauth 123456(主节点有密码则加)
+    先启动Master使用info replication查看
+    当主节点shutdown后，使用slaveof no one将从节点转换成为主节点
+
+    如果没有主从同步那么就检查一下是不是防火墙的问题
+ 
+3、事务处理
+redis对事务的支持还比较简单，redis只能保证一个client发起的事务中的命令可以连续执行，而中间不会插入其他client的命令。当一个client在一个连接中发出multi命令时，这个连接会进入一个事务的上下文，连接后续命令不会立即执行，而是先放到一个队列中，当执行exec命令时，redis会顺序的执行队列中的所有命令。
+比如我下面的一个例子
+set age 100
+multi
+set age 10
+set age 20
+exec
+get age --这个内容就应该是20
+multi
+set age 20
+set age 10
+exec 
+get age --这个时候的内容就成了10，充分体现了一下按照队列顺序执行的方式
+discard  取消所有事务，也就是事务回滚
+不过在redis事务执行有个别错误的时候，事务不会回滚，会把不错误的内容执行，错误的内容直接放弃
+
+乐观锁
+watch key如果没watch的key有改动那么outdate的事务是不能执行的
+
+4、持久化机制 
+redis是一个支持持久化的内存数据库
+snapshotting快照方式，默认的存储方式，默认写入dump.rdb的二进制文件中，可以配置redis在n秒内如果超过m个key被修改过就自动做快照
+save 900 1      #900秒内有至少1个键被更改则进行快照
+save 300 10     #300秒内有至少10个键被更改则进行快照
+save 60 10000   #60秒内有至少10000个键被更改则进行快照
+
+append-only file aof方式，使用aof时候redis会将每一次的函 数都追加到文件中，当redis重启时会重新执行文件中的保存的写命
+令在内存中。
+5、发布订阅消息 sbusribe publish操作，其实就类似linux下面的消息发布
+6、虚拟内存的使用
+可以配置vm功能，保存路径，最大内存上线，页面多少，页面大小，最大工作线程
+临时修改ip地址ifconfig eth0 192.168.15.129
+
+
+Redis-cli参数
+
+Usage: redis-cli [OPTIONS] [cmd [arg [arg ...]]]
+  -h <hostname>    Server hostname (default: 127.0.0.1)
+  -p <port>        Server port (default: 6379)
+  -s <socket>      Server socket (overrides hostname and port)
+  -a <password>    Password to use when connecting to the server
+  -r <repeat>      Execute specified command N times
+  -i <interval>    When -r is used, waits <interval> seconds per command.
+                   It is possible to specify sub-second times like -i 0.1
+  -n <db>          Database number
+  -x               Read last argument from STDIN
+  -d <delimiter>   Multi-bulk delimiter in for raw formatting (default: \n)
+  -c               Enable cluster mode (follow -ASK and -MOVED redirections)
+  --raw            Use raw formatting for replies (default when STDOUT is not a  tty)
+  --latency        Enter a special mode continuously sampling latency
+  --slave          Simulate a slave showing commands received from the master
+  --pipe           Transfer raw Redis protocol from stdin to server
+  --bigkeys        Sample Redis keys looking for big keys
+  --eval <file>    Send an EVAL command using the Lua script at <file>
+  --help           Output this help and exit
+  --version        Output version and exit
+
+
+
+
+Redis多个数据库
+
+注意：Redis支持多个数据库，并且每个数据库的数据是隔离的不能共享，并且基于单机才有，如果是集群就没有数据库的概念。
+
+Redis是一个字典结构的存储服务器，而实际上一个Redis实例提供了多个用来存储数据的字典，客户端可以指定将数据存储在哪个字典中。这与我们熟知的在一个关系数据库实例中可以创建多个数据库类似，所以可以将其中的每个字典都理解成一个独立的数据库。
+
+每个数据库对外都是一个从0开始的递增数字命名，Redis默认支持16个数据库（可以通过配置文件支持更多，无上限），可以通过配置databases来修改这一数字。客户端与Redis建立连接后会自动选择0号数据库，不过可以随时使用SELECT命令更换数据库，如要选择1号数据库：
+
+redis> SELECT 1
+OK
+redis [1] > GET foo
+(nil)
+
+然而这些以数字命名的数据库又与我们理解的数据库有所区别。首先Redis不支持自定义数据库的名字，每个数据库都以编号命名，开发者必须自己记录哪些数据库存储了哪些数据。另外Redis也不支持为每个数据库设置不同的访问密码，所以一个客户端要么可以访问全部数据库，要么连一个数据库也没有权限访问。最重要的一点是多个数据库之间并不是完全隔离的，比如FLUSHALL命令可以清空一个Redis实例中所有数据库中的数据。综上所述，这些数据库更像是一种命名空间，而不适宜存储不同应用程序的数据。比如可以使用0号数据库存储某个应用生产环境中的数据，使用1号数据库存储测试环境中的数据，但不适宜使用0号数据库存储A应用的数据而使用1号数据库B应用的数据，不同的应用应该使用不同的Redis实例存储数据。由于Redis非常轻量级，一个空Redis实例占用的内在只有1M左右，所以不用担心多个Redis实例会额外占用很多内存。
+
+
+Redis桌面管理工具：redis-desktop-manager
+官网(收费)：https://redisdesktop.com/download
+
+
+SpringBoot+Redis:
+
+SpringBoot1.x:
+<!--  redis -->
+<dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-redis</artifactId>
+</dependency>
+
+spring:
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    password:
+    timeout: 60   
+    pool:
+      max-active: 10
+      max-wait: -1
+      max-idle: 5
+      min-idle: 3
+
+
+SpringBoot2.x:
+<!--  redis -->
+<dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+
+spring:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: root
+    database: 0
+    timeout: 10s  # 数据库连接超时时间，2.0 中该参数的类型为Duration，这里在配置的时候需要指明单位
+    # 连接池配置，2.0中直接使用jedis或者lettuce配置连接池
+    jedis:
+      pool:        
+        max-idle: 50		# 最大空闲连接数        
+        min-idle: 10		# 最小空闲连接数        
+        max-wait:  -1s		# 等待可用连接的最大时间，负数为不限制        
+        max-active: -1		# 最大活跃连接数，负数为不限制
+
+#集群(注释host和port)
+    cluster: 
+      nodes: 
+      - 192.168.174.131:6379 
+      - 192.168.174.131:6380 
+      - 192.168.174.131:6381 
+#哨兵 
+    sentinel: 
+      master: mymaster 
+      nodes: 
+      - 192.168.174.131:26379 
+      - 192.168.174.131:26380
+
+#纯集群（注释上面的host,port,sentinel）
+    cluster:
+	nodes:
+	- 192.168.88.144:7000
+	- 192.168.88.144:7001
+	- 192.168.88.144:7002
+	- 192.168.88.144:7003
+	- 192.168.88.144:7004
+	- 192.168.88.144:7005
+
+	
+
+
+一、SpringBoot使用的模板类:
+RedisTemplate和StringRedisTemplate的区别：
+
+1. 两者的关系是StringRedisTemplate继承RedisTemplate。
+
+2. 两者的数据是不共通的；也就是说StringRedisTemplate只能管理StringRedisTemplate里面的数据，RedisTemplate只能管理RedisTemplate中的数据。
+
+3. SDR默认采用的序列化策略有两种，一种是String的序列化策略，一种是JDK的序列化策略。
+
+StringRedisTemplate默认采用的是String的序列化策略，保存的key和value都是采用此策略序列化保存的。
+
+RedisTemplate默认采用的是JDK的序列化策略，保存的key和value都是采用此策略序列化保存的。
+
+
+
+二、Spring管理缓存:
+@Cacheable、@CachePut、@CacheEvict，必须使用@EnableCaching开启，CacheManager可选
+
+
+@Configuration
+@EnableCaching
+public class RedisConfig extends CachingConfigurerSupport {
+
+    //默认缓存管理器
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory factory) {
+        RedisCacheManager cacheManager = RedisCacheManager.create(factory);
+        return cacheManager;
+    }
+}
+
+
+    使用参数id作为键,方法返回值作为值,而且忽略空值,存入缓存,下次调用根据键取值,如果有直接返回而不调用该方法,condition表示满足条件才执行缓存:
+@Cacheable放在一个类上时则表示该类所有的方法都是支持缓存的，条件不满足直接执行方法
+
+    @Cacheable(value="user", key="#id", unless="#result==null", condition="#id%2==0")
+    public Users getUser(int id) {
+        System.out.println("UsersService:");
+        Users u = usersDao.findById(id);       
+
+        return u;
+    }
+注意:返回对象的时候报java.lang.ClassCastException是和热部署冲突!
+去掉SpringBoot热部署就可以了
+
+    @CachePut类似@Cacheable,不同的是它不会查看缓存是否存在,而是直接保存到缓存
+    @CacheEvict是用来标注在需要清除缓存元素的方法或类上的,可以指定的属性有value、key、condition、allEntries和beforeInvocation
+	allEntries表示是否需要清除缓存中的所有元素。默认为false，表示不需要。
+	beforeInvocation默认是在对应方法成功执行之后触发的，即方法如果因为抛出异常而未能成功返回时也不会触发清除操作。

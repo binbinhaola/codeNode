@@ -1,0 +1,82 @@
+一、AJAX：asynchronous javascript and xml【异步的javascript和xml（异步刷新技术）】
+
+	ajax需要结合javascript，通过异步引擎对象向服务器发送请求，并通过回调函数得到返回的结果
+
+	这个过程是异步的【异步引擎把请求发送完之后javascript会继续执行而不等待服务器响应】
+
+二、异步引擎对象：XMLHttpRequest【javascript里的类】
+	常用属性：
+		readyState：对象的状态，返回值：
+			0：对象尚未初始化
+			1：对象开始发送请求
+			2：请求发送完成
+			3：开始读取服务器响应
+			4：服务器响应读取完成  
+
+		status：响应状态，返回值：
+			200：服务器正常响应
+			404：请求资源未找到
+			500：服务器内部错误【后台报错】
+			403：没有访问权限
+
+		statusText：得到响应状态的文本【OK：正常】
+		responseText：获取服务器响应的数据，以文本的方式返回
+		responseXml：获得服务器响应的数据，解析成DOM对象返回
+
+	常用方法：
+		open(请求方式，URL，是否异步)：初始化xmlHttpRequest的请求信息。
+		send(数据字符串)：发送请求
+		abort()：取消当前请求
+		
+
+	常用事件：
+		onreadystatechange：在readyState属性的值发生变化时触发。
+
+三、原生javascript发送ajax请求的代码：
+
+//1、创建XMLHttpRequest对象【因为要兼容不同浏览器，所以要用判断是否支持】
+var req = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+//2、设置回调函数
+req.onreadystatechange = 回调函数名;
+//3、初始化
+req.open("post","XXXServlet?param1=value1&param2=value2",true);
+//4、发送请求【如果参数拼接在url里面，则这里的参数可以写null】
+req.send(null)
+
+回调函数代码：
+//1、判断服务器是否正常响应，并且响应的结果是否已经读取完毕
+if(req.readyState==4&&req.status==200){
+    //2、获得响应的数据
+    var data = req.responseText;
+    //3、拿数据来使用
+    //alert(data);
+    document.write(data);
+}
+
+
+四、jQuery对ajax进行了封装，jQuery可以使用简单的几行代码来实现异步请求。
+
+jQuery的ajax方法包括：
+	
+	3、$.ajax(settings)：可以灵活的自定义请求
+		settings的写法：{XXX : XXX , YYY : YYY}【详情参照帮助文档】
+
+五、json
+	json是一种轻量级的数据交换格式，独立于任何编程语言，通常用在服务器和客户端之间传递数据的一个字符串。
+	【json就是一个字符串，只是这个字符串的格式是固定的】
+
+json字符串的格式：
+	用json字符串描述一个对象：
+	{"name":"张三" , "age":"18" , "sex":"男"}
+
+	用json字符串描述多个对象：
+	[{"name":"张三" , "age":"18" , "sex":"男"},{"name":"李四" , "age":"22" , "sex":"女"}]
+
+
+
+
+	
+
+
+
+

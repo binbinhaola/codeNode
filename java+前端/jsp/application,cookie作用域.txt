@@ -1,0 +1,47 @@
+
+1、application对象：系统的一个全局对象，主要用于将数据保存在缓存，并且能够在所有客户端上共享。
+	主要方法：
+		application.setAttribute("key",Object);  在application缓存中存储数据，以键值对的方式存储，这些数据可以在所有的客户端进行共享。
+		application.getAttribute("key");  通过key，获取application缓存中的数据，返回Object类型的对象。
+		application.removeAttribute("key");  通过key，将数据从application缓存中清除。
+
+2、内置对象的作用域
+	在学完这些JSP的常用内置对象之后，我们发现有一些方法在好几个对象中都有，这些方法是：
+	setAttribute("key",Object);
+	getAttribute("key");
+	removeAttribute("key");
+	这三个方法在request、session、application中都有，那么这些方法到底是干啥用的呢？为什么要有这么多，它们的区别是什么？
+	首先除了request、session、application之外，还有一个内置对象也有这些方法，那就是pageContext对象。
+	之前有介绍，setAttr...类型的方法都是把数据保存到缓存中，而getAttri...这类方法都是从缓存中拿取数据，removeAttr...则是从内存中移除数据。
+	而每个对象的这些方法的作用域与生命周期都不一样，下面来简单的介绍一下。
+	pageContext作用域：如果调用它的setAttri...方法，将数据保存进去，那这些数据只能在本页面使用，如果离开（无论是转发还是重定向），里面的数据都会清掉。
+	request作用域：调用request的setAttr...方法，将数据保存进去，这些数据可以在同一请求中生效。
+	session作用域：将数据保存到session.setAttribute方法时，将数据保存到session作用域，直到会话结束、session失效或主动移除。
+	application作用域：将数据保存到application作用域，整个服务启动期间有效，并且这些数据可以在所有的客户端中共享。
+
+	对象名称		作用域
+	pageContext	当前页面
+	request		同一请求
+	session		一次会话
+	application	整个服务启动期间
+
+
+Cookie介绍
+	Cookie是保存在客户端电脑上的一个文件，大小不超过4KB，以键值对的方式存放一些简单的文本信息。
+	在发送请求的时候，会自动把客户端的Cookie文件封装成一个对象放到Request里传给服务器，服务器就可以获取到cookie里的信息。
+	sessionid就是保存在cookie里。
+	cookie中的数据没有经过加密，安全性极低，非常容易泄露。
+	可以使用cookie来实现访问记录以及自动登录。
+	方法：
+	request.getCookies();获取客户端的所有cookie，返回一个Cookie对象数组。
+	
+	Cookie对象的常用方法；
+		getName();  获取cookie的key，返回String字符串
+		getValue(); 获取cookie的值，返回String字符串
+		setMaxAge(int s); 设置cookie的有效时间，以秒为单位
+		
+	添加Cookie的方法：
+		response.addCookie(Cookie cookie);  将一个cookie对象通过响应的方式写入到客户端。
+	
+
+

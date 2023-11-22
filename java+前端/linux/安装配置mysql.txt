@@ -1,0 +1,347 @@
+https://dev.mysql.com/downloads/mysql/
+https://www.jianshu.com/p/276d59cbc529
+https://www.cnblogs.com/lemon-feng/p/11233227.html
+Centos7 内部集成了mariadb：  
+rpm -qa|grep mariadb
+得到结果是：mariadb-libs-5.5.44-2.el7.centos.x86_64
+
+如果安装mysql和mariadb的文件冲突，先卸载mariadb,再安装mysql：
+rpm -e --nodeps mariadb-libs-5.5.44-2.el7.centos.x86_64
+rpm -e --nodeps mariadb-libs-5.5.60-1.el7_5.x86_64
+rpm -e --nodeps mariadb-libs-5.5.35-3.el7.x86_64
+
+#mariadb安装：（不要安装）
+#yum install mariadb-server -y
+#mariadb启动
+systemctl start mariadb
+
+
+#1、下载
+# mysql-5.6.37-linux-glibc2.12-x86_64.tar.gz
+
+#2、解压
+tar -zxvf mysql-5.6.37-linux-glibc2.12-x86_64.tar.gz
+
+#3、重命名：
+mv mysql-5.6.37-linux-glibc2.12-x86_64 mysql
+
+#4、添加用户组 
+groupadd mysql
+
+#5、添加用户mysql 到用户组mysql 
+useradd -g mysql mysql
+
+#6、创建数据文件夹
+cd /opt/mysql/data
+mkdir mysql
+
+#7、将指定文件的拥有者改为指定的用户和组
+chown -R mysql:mysql ./
+
+#8、CentOS7.x必须先安装perl
+命令：
+yum -y install perl-Module-Install.noarch
+yum install  libaio-devel.x86_64
+yum -y install autoconf
+yum install perl gcc kernel-devel
+#9、安装
+./scripts/mysql_install_db --user=mysql --basedir=/opt/mysql/ --datadir=/opt/mysql/data/mysql
+./scripts/mysql_install_db --user=mysql --basedir=/opt/mysql/mysql5.6  --datadir=/opt/mysql/mysql5.6/data/mysql
+如果是mysql5.7.x:
+./bin/mysqld --initialize --user=mysql --basedir=/opt/mysql/ --datadir=/opt/mysql/data/mysql
+执行上面初始化命令后，会生成临时密码，记住此密码
+
+
+报错：Data::Dumper
+解决方法：安装autoconf库
+命令：yum -y install autoconf
+
+报错：error while loading shared libraries: libnuma.so.1: 
+因为：libnuma.so默认安装的32位的，我的mysql是64位的，所以需要安装个64位的
+命令：yum -y install numactl.x86_64
+yum install  libaio-devel.x86_64
+
+----------------安装VMwere Tools------------------------
+bash: ./vmware-install.pl: /usr/bin/perl: bad interpreter: 没有那个文件或目录
+
+解决方法
+yum install perl gcc kernel-devel
+
+
+yum upgrade kernel kernel-devel
+
+---------------------------
+[root@localhost mysql]# ./scripts/mysql_install_db  --user=mysql
+
+-bash: ./scripts/mysql_install_db: /usr/bin/perl: bad interpreter: No such file or directory
+
+貌似提示注释器错误，没有/usr/bin/perl文件或者档案，解决办法（安装perl跟perl-devel即可）：
+
+执行  yum -y install perl perl-devel
+
+---------------------------------------------------
+
+#10、复制配置文件 /opt/mysql/
+cp support-files/mysql.server /etc/init.d/mysqld
+cp support-files/my-default.cnf /etc/my.cnf
+
+#11、修改my.cnf,解决乱码问题和InnoDB问题
+vi /etc/my.cnf
+#[mysqld]下面添加
+port=3306
+default-storage-engine=INNODB
+character-set-server=utf8
+lower_case_table_names=1
+#表名不区分大小写,windows默认为1,linux默认为0
+lower_case_table_names=1
+
+#12、修改启动脚本
+vi /etc/init.d/mysqld
+#修改项：
+basedir=/opt/mysql
+datadir=/opt/mysql/data/mysql
+
+#13、启动服务
+service mysqld start
+
+#14、测试连接
+cd /opt/mysql/bin
+./mysql -u root -p
+#4.6.x默认密码是空密码，回车就可以进
+
+#进入mysql 执行下面的命令查看编码是否为utf-8
+show variables like 'character%';
+
+#15、加入环境变量，编辑 /etc/profile，(要放到文件最后),这样可以在任何地方用mysql命令了
+vi /etc/profile
+export PATH=/opt/mysql/bin:$PATH
+
+#16、启用配置
+source /etc/profile
+
+#17、去根目录测试
+cd /
+mysql -u root -p 
+
+#关闭mysql
+service mysqld stop
+
+#查看运行状态
+service mysqld status
+
+#18、添加远程登录用户 （sqlyog连接时，报1130错误，是由于没有给远程连接的用户权限问题）
+use mysql;
+
+#看 host
+use mysql;
+select host,user from user where user='root'; 
+
+update user set host='%' where host='127.0.0.1';
+flush privileges; //刷新权限
+
+# 如果host有 % 就不要 update ,直接 flush privileges ; 
+#不然会报 ERROR 1062 (23000): Duplicate entry '%-root' for key 'PRIMARY'
+
+#19、修改root密码:
+use mysql;
+update user set password=password('root') where user='root';
+flush privileges;
+
+#在5.6后，mysql内置密码增强机制，低强度密码会报错：
+#ERROR 1819 (HY000): Your password does not satisfy the current policy requirements
+
+#20、开放端口
+6.x:  iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
+6.x:  service iptables save
+7.x:  firewall-cmd --zone=public --add-port=3306/tcp --permanent    
+7.x:  firewall-cmd --reload
+
+#查看规则
+6.x:iptables -L INPUT --line-numbers
+7.x:firewall-cmd --zone=public --list-ports
+
+#删除规则
+6.x:iptables -D INPUT -p tcp --dport 3306 -j ACCEPT
+7.x:firewall-cmd --zone= public --remove-port=3306/tcp --permanent
+
+
+#Windows测试
+telnet ip port
+#不能使用就在控制面板开启telnet客户端
+控制面板->程序和功能->启用或关闭windows功能
+
+#Linux查看端口命令：
+　　netstat -an :查看网络端口 [netstat -anp|grep svn]
+　　lsof -i :port，使用lsof -i :port就能看见所指定端口运行的程序，同时还有当前连接。
+
+#xshell查看mysql只要在工具设置编码utf-8就能查看中文，不需要set names
+
+
+注意：
+MySQL在Linux下数据库名、表名、列名、别名大小写规则是这样的：
+1）数据库名与表名是严格区分大小写的；
+2）表的别名是严格区分大小写的；
+3）列名与列的别名在所有的情况下均是忽略大小写的；
+4）变量名也是严格区分大小写的；
+5）MySQL在Windows下都不区分大小写，但是在Linux下默认是区分大小写的。
+
+在my.cnf中更改lower_case_table_names=1，并重启mysql数据库。
+
+
+
+
+---------------------------------https://blog.51cto.com/lifenlun163/1266731--------------------------------
+出现异常
+今天安装mysql5.6.12安装有些许报错，我在这里贴出来，给大家分享一下：
+
+
+
+安装完成后，初始化数据库报错如下：
+
+[root@localhost mysql]# ./scripts/mysql_install_db  --user=mysql
+
+-bash: ./scripts/mysql_install_db: /usr/bin/perl: bad interpreter: No such file or
+
+directory
+
+貌似提示注释器错误，没有/usr/bin/perl文件或者档案，解决办法（安装perl跟perl-devel即可）：
+
+执行  yum -y install perl perl-devel
+
+后在初始化数据库即可。
+
+
+
+启动mysql报错如下：
+
+[root@localhost mysql]# /etc/init.d/mysqld start
+
+Starting MySQL.............. ERROR! The server quit without updating PID file (/var/lib/mysql/localhost.localdomain.pid).
+
+查看日志文件有以下错误日志:
+
+2013-08-08 13:07:44 21805 [ERROR] Fatal error: Can't open and lock privilege tables: Table 'mysql.user' doesn't exist
+
+130808 13:07:45 mysqld_safe mysqld from pid file /var/lib/mysql/localhost.localdomain.pid ended
+
+解决办法：cp ./support-files/my-default.cnf /etc/my.cnf  后再重启即可
+
+
+
+根据度娘的结果，有大虾说是机器内存的问题，我在这里贴出其解决方案：
+
+查看日志文件，看看有什么提示！
+
+    生成my.cnf
+    sudo cp support-files/my-medium.cnf /etc/my.cnf
+
+
+    #下面是安装使用过程中出现的一些问题及解决方法
+
+一．不能用root用户运程连接mysql
+
+*******************************************************************************
+
+为MySQL的root用户添加远程访问权限：
+
+[root@localhost ~]# mysql -uroot -p
+Enter password: （此处输入密码登录）
+Welcome to the MySQL monitor.  Commands end with ; or /g.
+Your MySQL connection id is 35 to server version: 5.0.22
+
+Type 'help;' or '/h' for help. Type '/c' to clear the buffer.
+
+
+
+
+
+mysql> grant all on *.* to root@'%' identified by 'your_password';                
+Query OK, 0 rows affected (0.01 sec)
+
+
+
+mysql> exit
+Bye
+
+
+
+[root@localhost ~]# /etc/init.d/mysqld restart
+
+*******************************************************************************
+
+
+
+二．Mysqld启动失败
+
+*******************************************************************************
+
+1）  mysql相关进程僵死
+
+查找mysql相关进程：sudo ps –A ｜ grep mysql
+
+杀死相关进程：sudo kill -9 process_id
+
+重启mysqld：sudo /etc/init.d/mysqld restart
+
+
+
+
+
+2）优化后出现
+
+Starting MySQL..The server quit without updating PID file ([失败]ocal/mysql/data/localhost.localdomain.pid).
+
+这个问题主要出现的原因是因为my.cnf的配置过于高，当前的机器无法满足，导致了MYSQL启动失败，估计以后也会有很多人遇到这个问题，网上的标准是：
+
+
+
+如果内存是128M，则复制/usr/local/share/mysql/my-medium.cnf为/etc/my.cnf
+
+# This is for a system with little memory (32M - 64M) where MySQL plays
+
+# an important part, or systems up to 128M where MySQL is used together with
+
+# other programs (such as a web server)
+
+
+
+如果内存是512M，则复制/usr/local/share/mysql/my-large.cnf为/etc/my.cnf
+
+# This is for a large system with memory = 512M where the system runs mainly
+
+# MySQL.
+
+
+
+如果内存是1-2G，则复制/usr/local/share/mysql/my-huge.cnf为/etc/my.cnf
+
+# This is for a large system with memory of 1G-2G where the system runs mainly
+
+# MySQL.
+
+实际上需要在my-medium.cnf的基础上进行修改，增强部分配置，不能直接使用my-large.cnf和my-huge.cnf。
+
+除非你的服务器配置相当高。
+
+
+
+3）./mysql-bin.index not found
+
+权限问题修改数据目录的权限及/usr/local/mysql/bin/mysqld 的权限。
+
+
+
+4）Error Code : 1418 
+This function has none of DETERMINISTIC, NO SQL, or READS SQL DATA in its declaration and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable) 
+(0 ms taken)
+
+解决方法如下：
+
+1. mysql> SET GLOBAL log_bin_trust_function_creators = 1;
+
+2. 在my.ini(linux下为my.conf)文件中 [mysqld] 标记后加一行内容为 log-bin-trust-function-creators=1
+
+http://blog.chinaunix.net/space. ... blog&id=2435868
+
+
+

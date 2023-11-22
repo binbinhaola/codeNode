@@ -1,0 +1,73 @@
+1.下载上述zookeeper压缩包
+2.传到对应文件下，解压到指定文件
+tar -zxvf apache-zookeeper-3.5.8.tar.gz
+3.解压后可以删除原压缩包，并重命名解压后的文件r
+rm -rf apache-zookeeper-3.5.8.tar.gz 
+mv apache-zookeeper-3.5.8.tar zookeepper
+4.进入zookeeper文件下，创建一个data文件
+mkdir data
+5.进入data文件，复制路径opt/zookeeper/data
+将这个路径复制，然后回到zookeeper的conf文件
+下，创建一个文件zoo.cfg
+(本质是复制了 cp zoo_sample.cfg  zoo.cfg)
+
+6.修改zoo.cfg的配置信息 ，改成你的数据文件路径
+dataDir=/opt/zookeeper/data
+
+7.启动zookeeper服务
+去bin目录下执行./zkServer.sh start
+去bin目录下执行./zkCli.sh stop
+
+
+注意：如果客户端连接被拒绝，需要在conf的zoo.cfg文件下添加一个配置，解决和8080端口冲突的问题：
+admin.serverPort=8888  (非8080端口)
+
+8.防火墙放开2181端口
+#添加端口
+firewall-cmd --zone=public --add-port=2181/tcp --permanent(永久) 
+#查看所有打开的端口：
+firewall-cmd --zone=public --list-ports
+#重新载入
+firewall-cmd --reload
+https://blog.csdn.net/zhanglei082319/article/details/88931908
+
+========================================安装简单监控程序===========================================
+简单的监控中心，用于监控在dubbo框架下接口暴露，注册情况，也可以看接口的调用明细，调用时间等。而且监控中心挂掉并不会影响生成者和消费者
+
+参考资料：https://www.cnblogs.com/zjfjava/p/9694540.html
+先安装：
+yum install -y unzip zip
+unzip dubbo-monitor-simple-2.5.3
+1.将这个dubbo-monitor-simple-2.5.3.zip压缩包，复制到对应文件下解压缩
+2.进入conf文件下，找到dubbo.properties文件修改信息
+dubbo.container=log4j,spring,registry,jetty
+dubbo.application.name=simple-monitor
+dubbo.application.owner=
+#dubbo.registry.address=multicast://224.5.6.7:1234
+#集群配置方法
+#dubbo.registry.address=#zookeeper://192.168.233.130:2181?backup=192.168.233.130:2182,192.168.233.130:2183
+#单机配置
+dubbo.registry.address=zookeeper://127.0.0.1:2181
+#dubbo.registry.address=redis://127.0.0.1:6379
+#dubbo.registry.address=dubbo://127.0.0.1:9090
+dubbo.protocol.port=7070
+dubbo.jetty.port=7777
+dubbo.jetty.directory=${user.home}/monitor
+dubbo.charts.directory=${dubbo.jetty.directory}/charts
+dubbo.statistics.directory=${user.home}/monitor/statistics
+dubbo.log4j.file=logs/dubbo-monitor-simple.log
+dubbo.log4j.level=WARN
+3.先启动zookeeper服务，在去刚才解压包下的bin目录，启动start.sh
+4.访问地址htpp://127.0.0.1:7777可以看见监控页面
+
+===========================================================dubbo-admin=============================
+1. dubbo-admin
+dubbo-admin 管理平台，图形化的服务管理页面，安装时需要指定注册中心地址，即可从注册中心中获取到所有的提供者 / 消费者进行配置管理。
+
+将这个jar包复制到opt文件下，
+dubbo-admin-server-0.2.0.jar
+执行java -jar dubbo-admin-server-0.2.0.jar 
+访问页面http://192.168.88.144:9898 
+在windows下一样的操作
+如果需要登录和密码 都是root
+如果要修改jar中的配置文件，可以使用压缩软件打开jar包，在boot-inf下有properties文件

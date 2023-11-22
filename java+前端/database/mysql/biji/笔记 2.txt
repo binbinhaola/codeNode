@@ -1,0 +1,90 @@
+数据库语言大概可以分为三大类
+	1、DML：（Database Manipulation Language）数据库操作语言，insert、update、delete
+	2、DQL：（Database Query Language）数据库查询语言，select
+	2、DCL：（Database Control Language）数据库控制语言，grant、revoke
+	3、DDL：（Database Declare Language）数据库定义语言，create、drop、alter
+
+DDL语句：
+1、创建数据库语法，中括号内是可省略部分：
+
+	CREATE DATABASE [IF NOT EXISTS] 数据名称;
+
+	IF： 用来做判断，常用于SQL编程和存储过程里。
+	EXITES：是否存在。
+
+	USE：使用某个数据库，例如 USE MySchool 就是使用MySchool作为当前数据库。
+
+2、查看数据库：
+	SHOW DATABASES
+
+
+3、删除数据库
+	DROP DATABASE 数据库名称
+
+删除数据库会将该数据库下的表、数据、约束、索引等全部删除，在没有备份的情况下谨慎使用。
+
+
+4、数据类型
+	TINYINT		小整型	1字节
+	SMALLINT	短整型	2字节
+	MEDIUMINT	中整型	3字节
+	INT		整型	4字节
+	BIGINT		大整型	8字节
+	FLOAT		浮点型	4字节
+	DOUBLE		双精度	8字节
+	DECIMAL		数值
+	CHAR		固定长度字符串
+	VARCHAR		可变长度字符串
+	TINYTEXT	微型文本
+	TEXT		大型文本
+	DATE		日期类型	年-月-日
+	DATETIME	日期时间类型	年-月-日 时:分:秒
+	TIME		时间类型	时:分:秒
+	TIMESTAM	时间戳		年月日时分秒【1970-2038】
+	YEAR		年		年
+
+
+4、建表语法
+
+CREATE TABLE 表名
+(
+   列名1 数据类型 [列特征],
+   列名2 数据类型 [列特征]
+)
+
+列特征说明:
+	PRIMARY KEY	主键
+	AUTO_INCREMENT	自增长，后面可以写数值，不写默认增长1
+	NOT NULL	非空
+	DEFAULT		默认值，注意如果列的数据类型为字符型，默认值的值需要写在单引号中间
+	UNIQUE KEY	唯一键
+	FOREIGN KEY	外键
+
+
+
+
+5、存储引擎
+	MYISAM与INNODB的区别
+	MYISAM不支持事务、行级锁、外键，支持全文索引，占用空间小，常用在查询多的场合。
+	INNODB支持事务、行级锁、外键，不支持全文索引，占用空间大，常用在更新、删除多的场合
+
+6、文件系统
+	.frm	表结构定义文件
+	.MYD	数据文件
+	.MYI	索引文件
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

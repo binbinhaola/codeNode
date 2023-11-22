@@ -1,0 +1,206 @@
+https://upload.wikimedia.org/wikipedia/commons/1/1b/Linux_Distribution_Timeline.svg
+安装：
+https://blog.csdn.net/nuoyanli/article/details/86503686
+记录日志：
+文件->日志->启动
+
+查看
+
+CentOs7.5最小安装必须先启用网卡：
+1、修改网卡的配置文件
+vi /etc/sysconfig/network-scripts/ifcfg-ens33（可能有些名字有点差异）
+将ONBOOT后面的状态改为yes，保存退出
+
+2、重启网络服务(注意VM的5个服务不要关闭了,否则启动失败)
+service network restart
+
+3、使用ip addr查看ip地址
+
+4、如果习惯ifconfig命令的话，可以用yum命令安装
+yum install net-tools -y
+
+
+
+目录:
+pwd		查看当前目录
+cd		/|..   cd /:根目录  cd ..:是上一级 
+			cd ~:去root目录，类似windows桌面 
+			cd - 切换到上一次的目录，只能在两个目录切换
+ls		-a|-l|-la    (ls -l = ll)   ll -h /指定某个目录
+		
+mkdir   -p[建多层目录] -p a/b/c
+rmdir   -p[删多层目录] -p a/b/c
+rm      -r|-rf[删文件和目录]
+cp		原始文件 拷贝后路径  -r|-rf	
+cp      -r 源文件夹/*  目标文件夹/   递归拷贝
+mv		原始名   修改名
+
+文件:
+前面d:文件夹 l:连接文件(桌面快捷键) -:普通文件.conf .sh
+touch	新建文件
+vi|vim	编辑模式[-i|o|a]  命令模式[esc]	 底行模式[:]	退出[wq!|x!|q!]
+		查找[:/从光标位开始]  替换[:%s/被替换/替换内容/g]	行号[set nu]
+		修改全局显示行号[etc/virc的最后加:set nu][set number|nonumber]
+cat		小文件
+head	文件头10行	-10  文件名
+tail	文件尾10行	-10  文件名  -f[更新|动态加载]
+more    q 退出  more 文件名  回车：下一行，空格：下一页  b:返回上一页
+less    分页，可以标注行号  less -mN 文件名   m:百分比，N行号
+ctrl+c  退出tail -f界面动态加载
+find    查找命令。查找文件或者命令find /文件夹/ -name '你要查的字符*'  *：0-n个任意字符
+
+poweoff 关机
+reboot重启
+
+用户 --所在组 非本组用户
+drwx r-x --x d111 101 100 chmod 7 5 4
+d:文件夹  l:连接文件（快捷键） -:普通文件
+用户:
+su [-] 用户 [-表示使用该用户环境]
+whoami
+id
+groups
+groupadd	groupadd mysql
+groupdel
+useradd		useradd -g mysql mysql
+userdel
+usermod
+passwd
+
+#权限
+d rwxr-xr-x:d 目录 r[read] w[write] x[execute]
+  rwx[111]	r-x[101]	r--[100]  
+  7		    5  			4
+  用户	   	用户组		其他组
+#chmod [u|g|o][+|-] [r|w|x] 文件
+chmod ugo+rwx test.txt
+chmod 777 -R 文件夹 [-R递归授权]
+
+#将当前目录的拥有者改为指定的用户或组
+chown -R mysql:mysql ./
+
+进程:
+#查看进程
+ps -ef|grep [进程关键词]sshd (ps -ef查所有)
+#杀死进程
+kill -9 [pid]
+clear
+help
+mnt
+#找命令位置
+whereis 命令名
+#命令帮助
+man		命令名
+
+网络:
+#网卡查看
+ifconfig -a
+ip addr(CentOs7.5)
+#启用禁用
+ifconfig eth0 up
+ifconfig eth0 down
+#自动获取ip
+dhclient eth0
+service sshd start
+
+
+
+#挂载
+mkdir /mnt/cdrom
+mount /dev/cdrom /mnt/cdrom (必须开启cdrom连接而且cdrom中有iso)
+cd /mnt/cdrom
+
+#取消挂载
+umount /mnt/cdrom
+
+#软件安装
+tar:解压安装
+tar -zxvf  *.gzip -c 目录
+tar -jxvf  *.bz
+tar -xvf   *.zip|*.tar
+
+rpm:二进制安装
+rpm -qa|grep jdk                        查看
+rpm -ef Java-1.7.0-openjdk-1.7.0....    卸载
+rpm -ivh jdk-7u67-linux-x64.rpm         安装
+安装到指定目录
+rpm -ivh --prefix=/usr/java  xx.rpm			
+rpm -i --badreloc --relocate /usr/java=/home/java jdk.rpm
+
+yum:在线安装
+yum repolist all						查看开启的仓库
+yum -config-manager --enable <仓库名>   启用仓库
+yum list installed mysql* 				查看
+yum -y install mysql 					安装
+yum -y remove mysql						卸载
+yum list mysql*							查看有没有安装包
+安装到指定目录
+yum -c /etc/yum.conf --installroot=/opt/all_venv/ --releasever=/ install nginx
+
+该命令解释如下：
+-c /etc/yum.conf            表示指定yum配置文件地址
+--installroot=/usr/local    表示指定自定义的安装目录
+
+不推荐使用yum安装软件时将软件安装到自定义目录，因为实际操作过程中发现如果安装到自定义目录，会额外安装很多依赖的软件包，即使这些依赖包已经安装过，也会在你自定义的目录中重新安装
+
+
+#配置环境变量：(JDK)
+用户级别：vi .bash_profile
+系统级别：vi /etc/profile
+#添加(注意所有大小写)
+export JAVA_HOME=/opt/jdk1.8.0
+export PATH=$JAVA_HOME/bin:$PATH
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar(可省略)
+
+#生效（不要写在etc/profile里面）
+source /etc/profile
+
+6.x防火墙:
+打开8080端口:添加规则
+iptables -I|A INPUT -p tcp --dport 8080 -j ACCEPT
+保存规则到文件:
+service iptables save
+#查看规则
+iptables -L INPUT --line-numbers
+#删除规则
+iptables -D INPUT 1
+
+
+7.x防火墙:
+#启动关闭防火墙：
+systemctl start firewalld | 6.5:service iptables start
+systemctl stop firewalld  | 6.5:service iptables stop
+
+#添加端口
+firewall-cmd --zone=public --add-port=8080/tcp --permanent(永久) 
+#查看所有打开的端口：
+firewall-cmd --zone=public --list-ports
+#重新载入
+firewall-cmd --reload
+#查看
+firewall-cmd --zone=public --query-port=80/tcp
+#删除
+firewall-cmd --zone=public --remove-port=80/tcp --permanent
+
+#查看状态： 
+systemctl status firewalld 或者 firewall-cmd --state
+#查看当前开了哪些服务：
+firewall-cmd --list-services
+#添加一个服务到firewalld：
+firewall-cmd --add-service=http  //http换成想要开放的service
+#这样添加的service当前立刻生效，但系统下次启动就失效。
+#要永久开发一个service，加上 --permanent：
+firewall-cmd --permanent --add-service=http
+
+
+
+
+#关机重启：
+　	1、shutdown
+　　2、poweroff
+　　3、init
+　　4、reboot = shutdown -r now
+　　5、halt
+
+宝塔linux管理 
+https://www.bt.cn/

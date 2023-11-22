@@ -1,0 +1,108 @@
+1.安装好vm，xshell,xftp,centos7
+
+2.抄写下面命令（在本子上，明天检查）
+
+1.切换到root用户命令：
+  su   
+2. 看ip地址命令：
+  ifconfig 或者 ip addr
+3. 目录切换命令 
+    cd 
+切换到根目录
+	cd / 
+切换到指定目录
+	cd /目录名
+返回上一级目录
+	cd .. 
+4. 看目录下有那些文件命令 
+    ls 
+显示文件详细信息
+	ls -l 
+显示隐藏的文件
+	ls -a 
+详细显示所有文件信息
+    ls -la : 
+5.显示当前目录命令 
+  pwd
+6.文件copy
+  cp
+  拷贝 web.xml 到 test 目录,如果有同名会提示是否覆盖
+  cp web.xml test 
+  拷贝 test目录 到 tmp 目录，不提示是否覆盖，强行覆盖
+  cp -rf test /tmp:
+7.文件移动，改名
+  mv 
+  web.xml文件移动到/opt/www 目录
+  mv web.xml /opt/www 
+  web.xml文件改名为webbak.xml
+  mv web.xml webbak.xml 
+8.建目录
+  mkdir 
+  建单级目录test  
+  mkdir test 
+  建多级目录 www/bak
+  mkdir -p www/bak  
+9.建空文件test.txt
+  touch test.txt
+10.看文件web.xml，不分页 
+  cat web.xml
+11.看文件 web.xml，可分页
+  more web.xml
+  more的命令：
+  空格的含义：翻页
+  回车的含义：1行行走
+  q 的含义: 退出 more
+12.删文件
+  rm 
+  删文件 text.txt,询问是否删除
+  rm text.txt
+  删除文件 text.txt不询问直接删除，包括子文件夹 
+  rm -rf text.txt
+13.显示进程
+   ps
+   显示服务 sshd 的进程
+   ps -ef|grep sshd
+14.杀进程
+   kill -9 进程编号
+15.清屏 
+  clear
+16.退出shell  
+  exit
+17. 头部查看
+  head 
+  看/etc/passwd 文件的前5行
+  head -5 /etc/passwd 
+18. 尾部查看
+  tail
+  看/etc/passwd文件的后10行
+  tail -10 /etc/passwd 
+19. 编辑文件：
+    编辑 test.txt 文件
+	vi test.txt
+	vi 命令
+	进入编辑模式： i 
+	退出到命令模式：esc
+	进入底行模式：  ：  ，进入后输入 wq! 保存退出 ， q! 退出不保存
+	显示行号：先进底行模式 ， set nu 
+20.权限命令 :
+  chmod
+  给test目录加权限 用户加rwx， 用户组加r-x ,其他组r-x
+  chmod 755 /test
+  给test目录加所有权限,包括子文件.
+  chmod 777 -R /test
+21.加组(tomcat)
+  groupadd tomcat
+22.删除组(tomcat)
+  groupdel tomcat
+23. 看分组信息 
+  more /etc/group 
+24. 建用户(tomcat)，指定组号 701  
+  useradd -g 701 tomcat
+25. 删除用户jb51，但不删除其home及文件
+  userdel jb51 
+26. 删除用户jb51，其home及文件一并删除  
+  userdel -r jb51  
+27. 看用户信息
+  more /etc/passwd 
+28. 修改(tomcat)密码
+  passwd tomcat
