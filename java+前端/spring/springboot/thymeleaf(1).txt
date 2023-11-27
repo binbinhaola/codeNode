@@ -1,0 +1,103 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+1.后台Controller
+@GetMapping("/message")
+public String getMessage(Model model){
+    model.addAttribute("message","This is your message");
+    return "index";
+}
+注：向model中添加属性message
+
+
+2.页面通过Model取值
+<p th:text="#{message}">default message</p>
+
+  
+3.js通过model取值
+<script th:inline="javascript">
+    var message = [[${message}]];
+    console.log(message);
+</script>
+注：script标签中 th:inline 一定不能少，通常在取值的前后会加上不同的注释
+
+
+简单表达式 （simple expressions）
+　　${...}  变量表达式
+　　*{...}  选择变量表达式
+　　#{...}  消息表达式
+　　@{...}  链接url表达式
+
+thymeleaf标签:
+
+th:text="${data}",将data的值替换该属性所在标签的body。字符常量要用引号，比如th:text="'hello world'",th:text="2011+3",th:text="'my name is '+${user.name}"
+    th:utext，和th:text的区别是"unescaped text"。
+    th:with,定义变量，th:with="isEven=${prodStat.count}%2==0"，定义多个变量可以用逗号分隔。
+    th:attr，设置标签属性，多个属性可以用逗号分隔，比如th:attr="src=@{/image/aa.jpg},title=#{logo}"，此标签不太优雅，一般用的比较少。
+    th:[tagAttr],设置标签的各个属性，比如th:value,th:action等。
+    可以一次设置两个属性，比如：th:alt-title="#{logo}"
+    对属性增加前缀和后缀，用th:attrappend，th:attrprepend,比如：th:attrappend="class=${' '+cssStyle}"
+    对于属性是有些特定值的，比如checked属性，thymeleaf都采用bool值，比如th:checked=${user.isActive}
+    th:each, 循环，<tr th:each="user,userStat:${users}">,userStat是状态变量，有 index,count,size,current,even,odd,first,last等属性，如果没有显示设置状态变量，thymeleaf会默认给个“变量名+Stat"的状态变量。
+    th:if or th:unless，条件判断，支持布尔值，数字（非零为true)，字符，字符串等。
+    th:switch，th:case，选择语句。 th:case="*"表示default case。
+    th:fragment，th:include,th:substituteby:fragment为片段标记，指定一个模板内一部分代码为一个片段，然后在其它的页面中用th:include或th:substituteby进行包含。
+    包含的格式为，格式内可以为表达式，比如th:include="footer::$(user.logined)?'logined':'notLogin'"：
+    "templatename::fragname"，指定模板内的指定片段。
+    "templateName::[domselector]"，指定模板的dom selector，被包含的模板内不需要th:fragment.
+    ”templatename"，包含整个模板。
+    th:include和th:substituteby的区别在于前者包含片段的内容到当前标签内，后者是用整个片段（内容和上一层）替换当前标签（不仅仅是标签内容）。
+    th:remove="all|body|tag|all-but-first"，一般用于将mock数据在真实环境中移除，all表示移除标签以及标签内容，body只移除内容，tag只移除所属标签，不移除内容，all-but-first，除第一条外其它不移除。
+
+    由 于一个标签内可以包含多个th:x属性，其先后顺序为：include,each,if/unless/switch/case,with,attr /attrprepend/attrappend,value/href,src ,etc,text/utext,fragment,remove。
+
+
+
+表达式功能对象：
+    #dates：java.util.Date的功能方法类
+    #calendars:类似#dates，面向java.util.Calendar
+    #numbers:格式化数字的功能方法类
+    #strings：字符串对象的功能类，contains,startWiths,prepending/appending等等
+    #objects:对objects的功能类操作
+    #bools:对布尔值求值的功能方法
+    #arrays：对数组的功能类方法
+    #lists:对list集合功能类方法
+    #sets:对set集合功能类方法
+    #maps:对map集合功能类方法
+    #aggregates:对数组或者集合创建聚合的功能方法${#aggregates.avg(array)}
+    #messages:在变量表达式中获取外部信息的功能类方法。
+    #ids：处理可能重复的id属性的功能类方法。
+
+如：
+   <dd th:text="${#numbers.formatDecimal(product.price, 1, 2)}">180</dd>
+　 <dd th:text="${#dates.format(product.availableFrom, 'yyyy-MM-dd')}">2014-12-01</dd>
+   <dd th:text="${'$'+product.price}">235</dd>
+   <dd th:text="${#aggregates.sum(o.orderLines.{purchasePrice * amount})}">1</dd>
+
+条件操作：
+(if)?(then):满足条件，执行then。
+    (if)?(then):(else)
+    (value)?:(defalutValue) 
+
+switch:
+<!-- 当gender存在时，选择对应的选项；若gender不存在或为null时，取得customer对象的name-->
+<td th:switch="${customer.gender?.name()}">
+   <img th:case="'MALE'" src="images/male.png" th:src="@{/images/male.png}" alt="Male"/> 
+   <img th:case="'FEMALE'" src="images/female.png" th:src="@{/images/female.png}" alt="Female" /> 
+   <span th:case="*">Unknown</span>
+</td> 
+
+
+URL参数:
+a:(orderId=${o.id})
+<a th:href="@{'/details/'+${user.login}(orderId=${o.id},name=${name})}"></a>
+
+src:
+<img src="../../images/qr-code.jpg" th:src="@{${path}}" alt="二维码" />
+
+action:
+<form th:action="@{'/admin/'${path}}" th:object="${user}" method="post" th:method="post">
+    <input type="text" th:field="*{name}"/>
+    <input type="text" th:field="*{msg}"/>
+    <input type="submit"/>
+</form>

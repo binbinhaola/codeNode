@@ -1,0 +1,57 @@
+JDBC：简称java数据库连接技术，Java DataBase Connectivity
+
+使用java访问数据库需导入对应数据库的jar包
+	sqlserver数据库的包：	sqljdbc4.jar
+	mysql数据库的包：	mysql-connector-java.jar
+	oracle数据库的包：	ojdbc14.jar或clases12.jar
+
+使用JDBC的步骤：
+1、加载驱动：
+	Class.forName(数据库驱动字符串); 该方法会把不同数据库的驱动加载到java虚拟机
+
+2、建立数据库连接：
+	Connection conn = DriverManager.getConnection(连接字符串,用户名,密码);
+
+3、创建语句对象Statement
+	PreparedStatement ps = conn.preparedStatement(SQL语句);
+
+4、调用语句对象的execute系列方法
+	executeQuery()：执行查询操作，将查询结果封装在ResultSet对象里并返回出来。
+	executeUpdate()：执行增删改操作，返回int类型的受影响行数
+	execute()：执行，不区分查询或增删改，返回boolean类型结果，表示是否产生了结果集。
+
+5、如果是查询，则迭代ResultSet对象，将数据拿出来使用，如果是增删改，则进行其相应的提示等。
+
+6、关闭Connection对象、Statement对象、ResultSet对象，调用它们的close方法即可
+
+重点注意：所有资源，打开使用完之后必须要关闭，数据库也是资源，注意后创建的对象要先关闭！
+
+
+数据库驱动字符串：
+sqlserver数据库：com.microsoft.sqlserver.jdbc.SQLServerDriver
+mysql数据库：com.mysql.jdbc.Driver
+oracle数据库：oracle.jdbc.driver.OracleDriver
+
+连接字符串：
+sqlserver：jdbc:sqlserver://127.0.0.1:1433;DatabaseName=数据库名
+mysql：jdbc:mysql://localhost:3306/数据库名?useUnicode=true&amp;characterEncoding=utf-8
+oracle：jdbc:oracle:thin:@localhost:1521:orcl
+
+
+以上JDBC连接步骤顺序不能乱，切记数据库连接打开了就一定要关闭，注意规则是后打开的先关闭。
+
+在使用JDBC访问数据库的时候，需要处理的异常有：
+	ClassNotFoundException：加载驱动的时候，如果没导包，就会报找不到类的异常
+	SQLException：连接字符串、用户名密码错误，或者SQL语句错误，就会报SQL异常
+
+
+各对象详解：
+	Connection：中文翻译为“连接”，它是数据库的连接对象，Connection本身是一个接口，它只规定了一系列的方法，但是实现却是由数据库厂商来完成的，我们所导的那些包就是数据库厂商写的，它们都实现了Connection接口。
+
+	Statement：中文翻译为“语句”，它就是一个SQL语句对象，要执行任何的SQL语句都要通过这个对象来完成，而Statement本身也是一个接口，也是由各数据库厂商来实现具体细节。事实上使用比较多的是它的子接口PreparedStatement接口，PreparedStatement更安全，可以有效防止SQL注入，执行效率要比Statement高。
+
+	ResultSet：中文翻译为“结果集”，它封装了查询结果，查询出来的每一行数据都会存放到ResultSet对象中，我们可以循环获取ResultSet中的每一行数据，将它们拿出来使用。
+
+
+	
+	

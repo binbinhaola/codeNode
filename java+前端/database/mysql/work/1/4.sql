@@ -1,0 +1,31 @@
+CREATE DATABASE book
+
+CREATE TABLE book(
+	bid VARCHAR(30) PRIMARY KEY NOT NULL COMMENT'图书编号',
+	bName VARCHAR(30) NOT NULL COMMENT'图书书名',
+	author VARCHAR(30) COMMENT'作者姓名',
+	pubComp VARCHAR(30) COMMENT'出版社',
+	pubDate DATETIME COMMENT'出版日期',
+	bCount INT(5) COMMENT'现存数量',
+	price FLOAT(4) COMMENT'单价'
+)COMMENT '书' CHARSET='utf8'
+
+CREATE TABLE reader(
+	Rid VARCHAR(10) PRIMARY KEY NOT NULL COMMENT'读者编号',
+	rName VARCHAR(10) NOT NULL COMMENT'读者姓名',
+	leandNum INT(3) COMMENT'已借书数量',
+	rAddress VARCHAR(50) COMMENT'联席地址'
+	
+)COMMENT'读者表' CHARSET='utf8'
+
+CREATE TABLE borrow(
+	rid VARCHAR(10) NOT NULL COMMENT'读者编号',
+	nif VARCHAR(10) NOT NULL COMMENT'图书编号',
+	lendDate TIMESTAMP NOT NULL DEFAULT NOW() COMMENT'借阅日期',
+	willDate DATETIME  COMMENT'应归还日期',
+	returndate DATETIME COMMENT'实际归还日期',
+	
+	PRIMARY KEY(rid,nif,lendDate)
+)COMMENT'借阅表' CHARSET='utf8'
+
+

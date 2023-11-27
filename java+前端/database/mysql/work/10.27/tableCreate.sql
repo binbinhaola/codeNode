@@ -1,0 +1,45 @@
+CREATE TABLE student(
+
+	sid INT(4) PRIMARY KEY AUTO_INCREMENT COMMENT'学生编号',
+	stuName VARCHAR(10) NOT NULL COMMENT'学生名称',
+	age INT(4) NOT NULL COMMENT'年龄',
+	sex CHAR(2) NOT NULL COMMENT'学生性别'
+	
+	
+)COMMENT'学生表',CHARSET='utf8';
+
+CREATE TABLE course(
+
+	cid INT(4) PRIMARY KEY NOT NULL COMMENT'课程编号',
+	cName VARCHAR(50) NOT NULL COMMENT'课程名称',
+	tid INT(4) NOT NULL COMMENT'教室编号'
+	
+	
+)COMMENT'课程表',CHARSET='utf8';
+
+CREATE TABLE score(
+
+	sid INT(4) PRIMARY KEY NOT NULL COMMENT'学生编号',
+	cid INT(4) COMMENT'课程标号',
+	score INT(4) NOT NULL COMMENT'成绩'
+
+)COMMENT'成绩表',CHARSET='utf8';
+
+CREATE TABLE teacher(
+
+	tid INT(4) PRIMARY KEY NOT NULL COMMENT'教师编号',
+	teaName VARCHAR(50) NOT NULL COMMENT'教师名称'
+
+)COMMENT'教师表',CHARSET='utf8';
+
+	ALTER TABLE course
+	ADD CONSTRAINT fk_tid FOREIGN KEY (tid)
+	REFERENCES teacher(tid);
+	
+	ALTER TABLE score
+	ADD CONSTRAINT fk_cid FOREIGN KEY (cid)
+	REFERENCES course(cid);
+	
+	ALTER TABLE score
+	ADD CONSTRAINT fk_sid FOREIGN KEY (sid)
+	REFERENCES student(sid);

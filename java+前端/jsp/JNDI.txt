@@ -1,0 +1,111 @@
+1、JNDI：Java Nameing and Directory Interface（java命名与目录接口）
+
+jndi的作用是在服务器上配置一些数据，让应用服务器上的所有项目都可以使用，从而实现跨应用共享数据。
+
+JNDI使用方式:
+	1、在tomcat的context.xml中配置jndi
+	<Environment name="变量名" value="变量值" type="变量的类型全名" />，例如：
+	<Environment name="myJndiName" value="测试JNDI" type="java.lang.String" />
+
+	2、在jsp中查找jndi，通过Context对象的lookup()方法来查找，步骤如下
+	    a、创建Context对象
+		Context context = new InitialContext();
+	    b、执行Context对象的lookup()方法，返回Object类型，参数为以下格式的字符串
+		Object obj = context.lookup("java:comp/env/变量名");
+	    c、把对象强转成你想要的类型，并拿来使用
+		String str = (String)obj;
+		out.print(str);
+
+
+2、连接池：（Connection pool）连接池可以理解成一个放了很多连接对象的池子，这些连接对象都是tomcat容器自动创建好了的，程序只要直接拿来用就可以了。
+
+为什么有了JDBC还需要连接池？
+	JDBC连接数据库的方式是一种比较传统的连接方式，这种连接方式在执行过程中，需要经常与数据库建立连接，并且在使用后再关闭连接，释放资源。可想而知，频繁的连接和释放操作必然要耗费很多系统资源，因而需要有一种新的技术来弥补它的不足，这就是连接池（Connection Pool）技术。
+
+使用连接池的好处：
+	1、不用频繁的去创建连接，每次都要去加载数据库驱动，使用完了要释放连接
+	2、当并发访问数量较大时，网站速度收到极大影响
+	3、系统的安全性和稳定性相对较差
+
+
+数据源：DataSource
+	javax.sql.DataSource负责建立与数据库的连接
+	从Tomcat的数据源获得连接
+	把连接保存在连接池中
+
+
+连接池中存放了很多的连接对象，而这些连接对象又是由数据源DataSource来创建的，但是DataSource又是通过什么方式来创建连接的呢？
+1、DataSource怎么知道要连到哪个数据库？
+2、DataSource怎么知道要创建多少个连接对象？
+3、DataSource怎么知道连接数据库的用户名和密码是多少？
+4、DataSource怎么知道数据库的驱动包路径是什么？
+
+上述问题都可以通过JNDI来解决，步骤如下：
+
+1、在tomcat中配置JNDI数据源：
+
+<Resource name="jdbc/news" 
+       auth="Container"type="javax.sql.DataSource"  maxActive="100"  
+       maxIdle="30" maxWait="10000"   username="sa"   password="sa" 
+      driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"  
+     url="jdbc:sqlserver://localhost:1433;DatabaseName=NewsManager"/>
+
+2、在项目的web.xml中配置DataSource
+<resource-ref>
+    <res-ref-name> jdbc/news </res-ref-name>
+    <res-type> javax.sql.DataSource </res-type>
+    <res-auth> Container </res-auth>
+</resource-ref>
+
+3、在BaseDao中查找jndi，通过Context对象的lookup()方法来查找
+	Context context = new InitialContext();
+	DataSource ds = context.lookup("java:comp/env/jdbc/news");
+
+4、从DataSource对象中获取连接对象Connection
+	Connection conn = ds.getConnection();
+
+
+
+context.xml中的<DataSource>属性讲解：
+	name：jndi名称（可以自定义）
+	auth：权限（取值Application、Container）
+	type：javax.sql.DataSource（不能改）
+	maxActive：指定连接池中处于活动状态的数据库连接的最大数目（最多创建多少个连接）
+	maxIdle：指定连接池中处于空闲状态的数据库连接的最大数目（最少存在多少个连接）
+	maxWait：指定连接池中的连接处于空闲的最长时间
+	username：连接数据库的用户名
+	password：连接数据库的密码
+	driverClassName：数据库驱动包路径
+	url：数据库的连接字符串
+
+
+web.xml中的<resource-ref>讲解
+	<res-ref-name>子元素：表示引用哪个jndi，填写引用的jndi名称
+	<res-type>子元素：表示该jndi的数据类型，与context.xml中<Resource>的type要一致
+	<res-auth>子元素：表示权限名称，与context.xml中<Resource>的auth要一致
+
+分层：
+	在以前的项目，只有两层，即数据访问层与界面展示层，随着项目的做大，业务的不断改变，数据层的代码要不断的进行修改，而且还时不时影响到其他的功能，维护起来非常麻烦。
+
+	后来在两层的基础上增加了一个业务层，随着业务的变化，在修改代码的时候，只需要修改业务层的代码，而数据层的不需要动它，维护起来风险小，比较方便。
+
+三层：
+	即数据访问层（dao）：数据库表的增、删、改、查操作
+	业务层（service）：提供对业务逻辑处理的封装
+	表示层（jsp）：用于用户展示与交互
+
+
+分层的原则：
+上层依赖其下层，依赖关系不跨层 
+表示层不能直接访问数据访问层
+下一层不能调用上一层 
+下一层不依赖上一层
+上层的改变不会影响下一层
+下层的改变会影响上一层得到的结果
+在上一层中不能出现下一层的概念 
+分工明确，各司其职
+
+
+
+
+

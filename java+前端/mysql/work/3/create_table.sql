@@ -1,0 +1,54 @@
+CREATE DATABASE school2
+
+CREATE TABLE classInfo(
+
+	ClassID INT(4) PRIMARY KEY NOT NULL COMMENT '序号',
+	ClassNumber VARCHAR(20) NOT NULL COMMENT'教室号',
+	CTeacherID INT(4) NOT NULL COMMENT'教师ID',
+	ClassGrade VARCHAR(2) NOT NULL COMMENT'教师年级',
+	
+	CONSTRAINT fk_teacherID FOREIGN KEY (CTeacherID)
+	REFERENCES TeacherInfo(TeacherID)
+
+)COMMENT'课程信息' CHARSET='utf8';
+
+CREATE TABLE studentExam(
+
+	ExamID INT PRIMARY KEY NOT NULL COMMENT'序号',
+	ExamNumber VARCHAR(32) NOT NULL COMMENT'考试号',
+	EStuID INT NOT NULL COMMENT'学生ID',
+	ExamSubject VARCHAR(20) NOT NULL COMMENT'考试科目',
+	ExamResult INT COMMENT'考试结果',
+	
+	CONSTRAINT fk_stuID FOREIGN KEY (EstuID)
+	REFERENCES StudentInfo(StuID)
+	
+
+)COMMENT'考试信息' CHARSET='utf8';
+
+CREATE TABLE studentInfo(
+
+	stuId INT PRIMARY KEY NOT NULL COMMENT'序号',
+	stuNumber VARCHAR(10) NOT NULL COMMENT'学生号',
+	stuName VARCHAR(32) NOT NULL COMMENT'学生姓名',
+	stuAge INT COMMENT'年龄',
+	stuSex VARCHAR(2) NOT NULL COMMENT'性别',
+	stuCard VARCHAR(20) COMMENT'学生卡',
+	stuJoinTime DATETIME NOT NULL COMMENT'参考时间',
+	stuAddress VARCHAR(50) COMMENT'地址',
+	sClassID INT COMMENT'教室ID',
+	
+	CONSTRAINT fk_ClassID FOREIGN KEY (sClassID)
+	REFERENCES classInfo(ClassID)
+	
+)COMMENT'学生信息' CHARSET='utf8';
+
+CREATE TABLE teacherInfo(
+
+	teacherID INT PRIMARY KEY NOT NULL COMMENT'序号',
+	teacherName VARCHAR(20) NOT NULL COMMENT'姓名',
+	teacherTel VARCHAR(20) COMMENT'教师手机号',
+	teacherEmail VARCHAR(20) COMMENT'教师邮箱'
+	
+)COMMENT'教师信息' CHARSET='utf8';
+

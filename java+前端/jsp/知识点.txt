@@ -1,0 +1,109 @@
+﻿回顾：
+1、Tomcat服务器：
+	运行JSP的Web容器
+
+2、JSP页面：
+	静态元素
+	<%@指令 %>
+	<% Java小脚本 %>
+	<%=表达式 %>
+	<%! 方法声明 %>
+	<%--注释--%>
+
+3、JSP执行过程：
+	编写-->*.jsp-->翻译-->*.java-->编译-->*.class-->生成-->*.html-->浏览器显示
+
+
+JSP内置对象：
+	由Web容器创建的一组对象，可以直接在JSP页面使用，无需使用“new”获取实例，名称是保留字
+	五大内置对象：out，request，response，session，application
+
+一、out对象：用于向浏览器输出数据
+1、常用方法：
+	print() -->用于在页面中显示字符串信息，可识别网页标签
+注意：<%=表达式 %> 将被翻译成 out.print("");
+
+二、request对象：用于处理客户端请求以及获取请求中的数据
+1、常用方法：
+  	String getParameter(String name) -->根据页面表单组件名称获取页面提交数据
+	String[] getParameterValues(String name) -->获取一个页面表单组件对应多个值时的用户的请求数据 
+	void setCharacterEncoding(String charset) -->指定每个请求的编码，在调用getParameter()之前进行设定，可以解决中文乱码问题
+	RequestDispatcher getRequestDispatcher(String path) -->返回一个RequestDispatcher对象，该对象的forward()方法用于转发请求
+
+2、中文乱码问题：由于字符集编码不一致造成，WEB容器默认编码方式为ISO-8859-1
+1）POST方式提交表单中文数据时：
+	request.setCharacterEncoding("UTF-8");	
+	String name=request.getParameter("name");
+
+2）GET方式提交表单中文数据时：
+	String name=request.getParameter("name");
+	name=new String(name.getBytes("ISO-8859-1"),"UTF-8");
+
+3）在Tomcat中设置字符集：解决GET方式多个参数进行编码转换的麻烦
+	conf\server.xml文件：
+	    <Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" 
+	       URIEncoding="UTF-8"/>
+注意：如果已在Tomcat中设置了字符集，则无需在JSP页面中进行编码转换，否则仍将出现中文乱码
+
+3、post提交和get提交的区别：
+1）安全性：get方式提交的数据将显示在URL中，安全性较低
+2）数据大小限制：get方式提交的数据不能超过2K，post无限制
+注意：一般情况下，表单提交都采用post，超链接属于get
+
+三、response对象：用于响应客户请求并向客户端输出信息
+1、常用方法：
+	void sendRedirect(String location) -->将请求重新定位到一个不同的URL，即页面重定向
+
+2、页面转发：在多个页面交互过程中实现请求数据的共享
+实现：RequestDispatcher对象.forward()方法
+<%
+  RequestDispatcher rd=request.getRequestDispatcher("welcome.jsp");
+  rd.forward(request,response);
+%>
+
+3、转发 VS 重定向：
+1）转发是在服务器端发挥作用，通过forward方法将提交信息在多个页面间进行传递。request不会丢失，可以共享请求的数据
+2）转发是在服务器内部控制权的转移，客户端浏览器的地址栏不会显示出转向后的地址。
+3）重定向是在客户端发挥作用，通过请求新的地址实现页面转向。request会丢失，无法共享请求的数据
+4）重定向是通过浏览器重新请求地址，在地址栏中可以显示转向后的地址。
+
+4、超链接传递数据：
+1）表现方式：<a href="test.jsp?name=value&name=value"></a>
+2）所属响应方式：重定向，新的请求
+3）所属提交方式：get
+
+四、session对象：用于在多个请求和响应过程中存储状态信息，如：登录、购物车
+1、http协议的特点：无状态，无连接
+
+2、session，会话：浏览器与服务器之间的一次通话
+1）个人状态管理，1个客户端（1个浏览器）对应1个session
+2）session存储在服务器端，sessionid存储在客户端
+
+
+3、session应用：权限访问控制，必须先登录才能访问主页
+	设置值：session.setAttribute(key,value);键值对
+	获取值：session.getAttribute(key);返回Object
+
+4、设置session失效
+1）手动设置失效：invalidate()
+2）超时失效
+a- 通过setMaxInactiveInterval()方法,单位：秒
+<%
+	session.setAttribute("login","admin"); 
+	session.setMaxInactiveInterval(600); 
+%>
+
+b- 通过设置项目的web.xml或Tomcat目录/conf/web.xml文件，单位：分钟
+<session-config>
+    	<session-timeout>10</session-timeout>
+</session-config>
+
+
+
+
+
+
+
+

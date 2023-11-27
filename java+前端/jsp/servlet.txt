@@ -1,0 +1,111 @@
+servlet概念
+
+servlet是一个运行在服务器端，用于处理客户端请求并作出响应的，符合特定规范的java程序（类）
+
+例如：
+客户端访问index.jsp时，tomcat会将index.jsp翻译成一个java类，然后再编译该java类，最后执行里面的某个方法，其实这个翻译过来的java类就是一个servlet。
+
+在早期的javaEE开发，并没有jsp，浏览器发送请求时直接请求到一个servlet，然后在servlet中用out对象的write方法把HTML页面代码逐行输出来，后来为了把页面与java代码分离，就创建了jsp的标准，允许在jsp文件中直接编写静态页面代码。
+
+所以可以说jsp是对servlet的一种扩展（因为jsp最终还是会翻译成java类）
+
+
+Servlet API有两个包
+1、javax.servlet	                支持通用的不依赖于协议的Servlet
+2、javax.servlet.http 		支持http协议的Servlet（常用）
+
+由于网站都基于http协议，所以在编写servlet时通常都是使用javax.servlet.http的API
+步骤：
+1、编写一个普通类去继承javax.servlet.http.HttpServlet
+2、重写以下方法：
+	doGet()：此方法在客户端以get方式请求时被执行
+	doPost()：此方法在客户端以post方式请求时被执行
+
+3、编写web.xml文件映射servlet
+	a、在根节点下编写servlet节点
+		<servlet>
+			<servlet-name>servlet的名称</servlet-name>
+			<servlet-class>servlet的完整类路径</servlet-class>
+		<servlet>
+	b、在servlet节点下配置初始化参数（可选步骤），可以配置多个参数
+		<servlet>
+			<servlet-name>servlet的名称</servlet-name>
+			<servlet-class>servlet的完整类路径</servlet-class>
+			<init-param>
+            			<param-name>参数名</param-name>
+            			<param-value>参数值</param-value>
+        		</init-param>
+		<servlet>
+		
+	c、在根节点下编写servlet-mapping节点
+		<servlet-mapping>
+			<servlet-name>引用上面配置的名称</servlet-name>
+			<url-pattern>映射的请求资源名称</url-pattern>
+		</servlet-mapping>
+
+步骤b配置的参数可以在servlet中调用getInitParameter方法来获取
+	String param = getInitParameter(参数名);
+
+
+执行顺序：
+
+第一次请求servlet：
+	tomcat实例化servlet对象
+	init()方法被调用
+	service()方法被调用
+	doPost()或doGet()方法被调用
+
+第2～N次请求servlet
+	service()方法被调用
+	doPost()或doGet方法被调用
+
+停止服务时：
+	destroy()方法被调用
+
+从上执行顺序中得知，init方法和destroy方法只会执行一次，一个是初始化执行，一个是服务停止时执行，所以可以得到servlet的生命周期大概如下：
+
+servlet的生命周期：
+1、实例化
+2、初始化
+3、服务
+4、销毁
+
+
+在Servlet中获取内置对象：
+
+获取out对象：
+	PrintWriter out = response.getWriter();
+
+获取session对象：
+	HttpSession session = request.getSession();
+
+获取application对象：
+	ServletContext application = request.getServletContext();
+
+内置对象out、session、application只是一个对象名，相当于一个变量名，它们的类型是PrintWriter、HttpSession、ServletContext
+
+
+在web.xml中配置上下文参数
+1、在根节点下配置init-param
+	<context-param>
+        	<param-name>参数名</param-name>
+        	<param-value>参数值</param-value>
+	</context-param>
+
+2、在每一个servlet中都可以通过application的getInitParameter方法来获取
+	String param = this.getServletContext().getInitParameter(参数名);
+
+
+servlet初始化参数 与 上下文参数的区别
+上下文参数可以在所有servlet中共享
+servlet初始化参数只能在配置的那个servlet中使用
+
+
+
+
+
+
+
+
+
+

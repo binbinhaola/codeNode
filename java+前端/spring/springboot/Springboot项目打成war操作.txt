@@ -1,0 +1,27 @@
+1.pom文件中
+<packaging>war</packaging>
+
+2.排除内置tomcat
+<!--使用tomcat发布的时候，排除了内置的tomcat-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+3.修改启动主方法
+@SpringBootApplication
+@MapperScan("com.cssl.dao")
+public class App extends SpringBootServletInitializer {
+
+    /*public static void main(String[] args) {
+        SpringApplication.run(App.class,args);
+    }*/
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(App.class);
+    }
+
+}
+4.发布发自己配置的tomcat中去，自动打成war包。
+或者是使用maven命令package，单独打成war包，复制war放到其他服务器上去运行

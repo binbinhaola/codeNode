@@ -1,0 +1,65 @@
+1、了解什么是动态网页
+	动态网页：同一个页面会随不同人群访问而显示不同的内容，它可以实现服务器端与客户端之间的交互
+	静态网页：页面内容永远不会变化，无法与服务器端取得交互。
+
+
+2、什么是B/S架构与C/S架构，它们的区别
+	B/S架构：基于浏览器/服务器的一种架构，例如淘宝网、百度、京东等网站系统
+	C/S架构：基于客户端/服务器的一种架构，例如QQ、酷狗、LOL等
+
+BS架构与CS架构的区别：
+	C/S：使用C/S架构软件需要安装客户端，每次更新需要升级，使用不方便，维护代价高。
+	B/S：使用B/S架构软件无需安装客户端，免去升级烦恼，使用方便，维护代价较低。
+
+3、什么是URL，以及它的组成部分
+	URL是统一资源定位符，也就是所谓的网址，它由三部分组成
+	数据传输协议：http（超文本传输协议）、https（超文本加密传输协议）
+	服务器地址和端口：本机（localhost）、端口默认为80（80端口在URL中可以省略不写）
+	资源路径：如vjia/index.html
+	
+	http://localhost:8080/vjia/index.html
+	上面这个URL是访问本机8080端口下路径为vjia文件夹下的index.html页面
+
+4、tomcat服务器
+	a、tomcat是apache公司的一个开源项目，它是一款专门用来发布web项目的服务器
+	b、tomcat服务器并不是传统意义上的服务器系统，而是安装在服务器上的一个软件，可以称之为一个web容器，也可以叫做中间件。
+	c、它的作用就是用来处理网页的所有请求和响应
+	d、tomcat适用于中小型web项目的生产发布和学习使用，大型系统有JBOSS与weblogic，它们的原理都是一样的。
+
+5、tomcat的安装及配置
+	a、安装tomcat绿色版（解压版）
+	b、配置环境变量CATALINA_HOME为tomcat的安装目录（与安装JDK时配置JAVA_HOME变量相同）
+
+6、tomcat目录结构
+bin：该目录放置了tomcat的所有可执行文件，windows下常用的如startup.bat和shutdown.bat，linux上用startup.sh与shutdown.sh
+conf：该目录放置了tomcat的所有配置文件，常用的如server.xml、context.xml和tomcat-users.xml
+lib：该目录存放了tomcat服务器所需的各种jar包
+logs：该目录存放了tomcat运行的日志文件
+temp：该目录存放了tomcat运行时的临时文件
+webapps：该目录存放所有部署在tomcat的项目文件
+work：该目录存放了tomcat翻译编译jsp后生成的.java文件和.class文件
+
+7、在MyEclipse中配置tomcat。
+
+8、WEB项目的目录结构
+src：编写java源文件的根路径，所有java文件写到这个文件夹下。
+webRoot：应用根目录，里面的所有文件均对客户端都可以访问，如JSP页面、HTML页面
+	WEB-INF:WebRoot的子目录，该目录下的所有文件都是不能被客户端直接访问的，只能通过服务器来访问，其中的关键文件为web.xml
+		WEB-INF/classes：存放所有的class文件
+		WEB-INF/lib：存放项目所需的jar包
+
+9、JSP的组成部分
+	静态元素：包括HTML标签，CSS样式，以及静态的文字
+	指令：<%@ 指令%>，通常用来设置页面的属性、导包等
+	小脚本：<% java代码 %>，通过小脚本，在jsp中嵌入java代码
+	表达式：<%=表达式 %>，用来在页面上输出变量的值
+	声明：<%! 声明方法 %>，用来在jsp中定义一个方法，以便重用，定义变量时，为成员变量
+	注释：<%-- 注释 --%>，服务器注释，在客户端上无法看到
+
+
+10、JSP的执行原理：
+	a、访问网页localhost:8080/web01/index.jsp，发送一个请求到服务器
+	b、tomcat服务器找到index.jsp文件
+	c、将index.jsp翻译成.java文件
+	d、将.java文件编译成.class文件
+	e、运行.class文件，输出内容到客户端

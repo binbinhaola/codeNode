@@ -1,0 +1,59 @@
+#安装gcc ；选择都选 y
+yum install gcc
+yum install gcc-c++
+#安装tcl
+yum install -y tcl
+#安装jdk
+copy apache-zookeeper-3.5.8-bin.tar.gz , dubbo-admin-server-0.2.0.jar 到Linux
+# 给权限 
+#安装zookeeper
+tar zxvf apache-zookeeper-3.5.8-bin.tar.gz
+mv apache-zookeeper-3.5.8-bin  /opt/zookeeper
+chmod 755 -R  /opt/zookeeper
+# 去zookeeper目录建文件夹
+cd /opt/zookeeper 
+mkdir data
+mkdir log
+# 去 conf 下改配置 
+cd conf
+cp zoo_sample.cfg zoo.cfg
+# 改配置
+vi zoo.cfg
+dataDir=/opt/zookeeper/data
+dataLogDir=/opt/zookeeper/log
+#保存后 给权限 chmod 755 -R  /opt/zookeeper
+
+# 注意 8080 不能被占用，lsof -i:8080 看1下。
+
+# 运行
+cd /opt/zookeeper/bin
+./zkServer.sh start
+# Usage: ./zkServer.sh [--config <conf-dir>] {start|start-foreground|stop|restart|status|print-cmd}
+
+#监控中心
+cd /opt/tools
+mv dubbo-admin-server-0.2.0.jar /opt/dubbo-admin-server-0.2.0.jar
+cd /opt
+#启动
+java -jar dubbo-admin-server-0.2.0.jar
+#访问
+http://192.168.118.138:9898
+
+#防火墙设置
+#查看firewall是否运行,下面两个命令都可以
+firewall-cmd --state
+#启动一个服务：
+systemctl start firewalld.service
+#在开机时启用一个服务：
+systemctl enable firewalld.service
+
+#开端口
+firewall-cmd --zone=public --add-port=2181/tcp --permanent
+firewall-cmd --zone=public --add-port=9898/tcp --permanent
+#防火墙重新加载
+firewall-cmd --reload
+
+#看端口
+firewall-cmd --zone=public --list-ports
+
+#如果有问题关闭一个服务：systemctl stop firewalld.service
