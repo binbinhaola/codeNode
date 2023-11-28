@@ -581,6 +581,8 @@ a1.sinkgroups.g1.processor.type = load_balance
 
 ## Flume聚合
 
+![image-20231127195007098](F:\markdownImg\image-20231127195007098.png)
+
 客户端配置avro类型sink，并将ip改为服务端ip
 
 ![image-20231127164150691](F:\markdownImg\image-20231127164150691.png)
@@ -593,15 +595,315 @@ a1.sinkgroups.g1.processor.type = load_balance
 
 ## 自定义拦截器
 
-### Multiplexing Channel Selector
+![image-20231127194953647](F:\markdownImg\image-20231127194953647.png)
+
+**Multiplexing Channel Selector**
 
 ```shell
 a1.sources = r1
 a1.channels = c1 c2 c3 c4
 a1.sources.r1.selector.type = multiplexing	#原则器类型
-a1.sources.r1.selector.header = state	#取表头的key
+a1.sources.r1.selector.header = type	#取表头的key
 a1.sources.r1.selector.mapping.CZ = c1	#（k，v）的值，放在对应的channel
 a1.sources.r1.selector.mapping.US = c2 c3
 a1.sources.r1.selector.default = c4		#匹配不到用默认值
 ```
 
+
+
+**自定义拦截器代码**
+
+```java
+package com.atguigu.interceptor;
+import org.apache.flume.Context;
+import org.apache.flume.Event;
+import org.apache.flume.interceptor.Interceptor;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TypeInterceptor implements Interceptor {
+     private List<Event> addHeaderEvents = null;
+    @Override
+    public void initialize() {
+        //声明一个集合用于存放拦截器处理后的事件
+         addHeaderEvents = new ArrayList<>();
+    }
+
+    //单个事件处理方法
+    @Override
+    public Event intercept(Event event) {
+
+        //1.获取header&body
+        Map<String, String> headers = event.getHeaders();
+        String body = new String(event.getBody());
+
+        //2.根据body中是否包含“atguigu”添加不同的头信息
+        if(body.contains("atguigu")){
+            headers.put("type","atguigu");
+        }else {
+            headers.put("type","other");
+            
+        }
+		//如果需要过滤数据
+        //直接return null
+
+        //3.返回数据
+        return event;
+        
+    }
+
+    //批量事件处理方法
+    @Override
+    public List<Event> intercept(List<Event> events) {
+
+        //1.清空集合
+        addHeaderEvents.clear();
+
+        //2.遍历
+        for (Event event : events) {
+            addHeaderEvents.add(intercept(event));
+        }
+
+        //3.返回数据
+        return addHeaderEvents;
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    public static class Builder implements Interceptor.Builder{
+
+        @Override
+        public Interceptor build() {
+            return new TypeInterceptor();
+        }
+
+        @Override
+        public void configure(Context context) {
+
+        }
+    }
+}
+
+```
+
+之后讲代码打包，放入lib文件夹中，flume会根据全类名自动读取
+
+
+
+**自定义拦截器端配置**
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1 k2
+a1.channels = c1 c2
+
+# Describe/configure the source
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+
+a1.sources.r1.interceptors = i1
+a1.sources.r1.interceptors.i1.type = com.atguigu.inter.xxx$Builder#自定义拦截器全类名
+
+a1.sources.r1.selector.type = multiplexing
+a1.sources.r1.selector.header = type	#数据头部中的key
+a1.sources.r1.selector.mapping.first = c1	#数据头部对应key的值
+a1.sources.r1.selector.mapping.second = c2
+
+# Describe the sink
+a1.sinks.k1.type = avro
+a1.sinks.k1.hostname = hadoop103
+a1.sinks.k1.port = 4141
+a1.sinks.k2.type=avro
+a1.sinks.k2.hostname = hadoop104
+a1.sinks.k2.port = 4242
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+# Use a channel which buffers events in memory
+a1.channels.c2.type = memory
+a1.channels.c2.capacity = 1000
+a1.channels.c2.transactionCapacity = 100
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1 c2
+a1.sinks.k1.channel = c1
+a1.sinks.k2.channel = c2
+
+```
+
+接收端按avro source配置即可
+
+
+
+## 自定义Source
+
+![image-20231127212648385](F:\markdownImg\image-20231127212648385.png)
+
+![image-20231127212705181](F:\markdownImg\image-20231127212705181.png)
+
+**自定义Source java代码**
+
+```java
+public class MySource extends AbstractSource implements Configurable,PollableSource {
+
+    //自定义Source类接受参数
+    private String prefix;
+    private String suffix;
+    private Long delay;
+    
+    //头信息
+    HashMap<String,String> header = new HashMap<>();
+
+    @Override
+    public void configure(Context context) {
+
+        //此项为source自定义属性
+        //目的从配置文件中获取数据
+        //类似于 a1.source.r1.type 中的type
+        prefix = context.getString("pre","pre-");
+        suffix = context.getString("sub");
+        delay = context.getLong("delay",2000L);
+
+    }
+
+    @Override
+    public Status process() throws EventDeliveryException {
+
+
+
+
+        //2.循环创建事件信息，传给channel
+        try {
+            for(int i = 0; i < 5; i++){
+                //声明事件
+                Event event = new SimpleEvent();
+                event.setHeaders(header);
+                event.setBody((prefix + "atguigu:"+i+suffix).getBytes());
+                getChannelProcessor().processEvent(event);
+            }
+
+            Thread.sleep(delay);
+            return Status.READY;//函数返回status枚举类
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Status.BACKOFF;
+        }
+    }
+
+    @Override
+    public long getBackOffSleepIncrement() {
+        return 0;
+    }
+
+    @Override
+    public long getMaxBackOffSleepInterval() {
+        return 0;
+    }
+
+}
+```
+
+**使用自定义Source配置**
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# Describe/configure the source
+a1.sources.r1.type = com.atguigu.source.MySource
+a1.sources.r1.pre =  sb-
+a1.sources.r1.sub =  .fk
+a1.sources.r1.delay = 5000
+
+# Describe the sink
+a1.sinks.k1.type = logger
+a1.sinks.k1.maxBytesToLog = 32
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+
+```
+
+
+
+## 自定义Sinks
+
+```java
+public class MySink extends AbstractSink implements Configurable {
+    //声明数据的前后缀
+    private String prefix;
+    private String suffix;
+
+    //创建Logger对象
+    Logger logger =  LoggerFactory.getLogger(MySink.class);
+
+
+    @Override
+    public Status process() throws EventDeliveryException {
+        //1.获取channel并开启事务
+        Channel channel = getChannel();
+        Transaction transaction = channel.getTransaction();
+        transaction.begin();
+
+        //2.从Channel中抓取数据打印到控制台
+        try{
+
+            //抓取数据
+            //一直抓取，知道获取到数据
+            Event event;
+            do {
+                event = channel.take();
+            } while (event == null);
+
+            //处理数据
+            logger.info(prefix+new String(event.getBody())+suffix);
+
+            //提交事务
+            transaction.commit();
+            return Status.READY;
+
+        }catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            return Status.BACKOFF;
+        }finally {
+            transaction.close();
+        }
+    }
+
+    @Override
+    public void configure(Context context) {
+
+        prefix = context.getString("pre","pre-");
+        suffix = context.getString("sub");
+    }
+}
+```
+
+**自定义sink参数**
+
+```shell
+#Describe the sink
+a1.sinks.k1.type = com.customer.sink.MySink
+a1.sinks.k1.pre = -pre
+a1.sinks.k1.sub = -bs
+```
+
+
+
+# Flume 数据流监控
+
+Ganglia
