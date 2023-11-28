@@ -61,7 +61,7 @@ Body用来存放该条数据，形式为字节数组。
 
 1.下载bin包,解压改名
 
-2.删除bin目录下的guava工具包，兼容hadoop 3.1.3
+2.删除lib目录下的guava工具包，兼容hadoop 3.1.3
 
 
 
@@ -327,4 +327,583 @@ a1.sinks.k1.channel = c1
 
 
 
-p14
+# Flume进阶
+
+
+
+## 事务
+
+![image-20231127094548337](F:\markdownImg\image-20231127094548337.png)
+
+## 内部原理
+
+![image-20231127094603374](F:\markdownImg\image-20231127094603374.png)
+
+
+
+## 拓扑结构
+
+![image-20231127094619894](F:\markdownImg\image-20231127094619894.png)
+
+![image-20231127094632944](F:\markdownImg\image-20231127094632944.png)
+
+![image-20231127094641315](F:\markdownImg\image-20231127094641315.png)
+
+![image-20231127094649156](F:\markdownImg\image-20231127094649156.png)
+
+
+
+# Flume开发案列
+
+
+
+## 复制和多路复用
+
+哪方接受数据，哪方就是服务端
+
+**向多端发送文件副本**
+
+
+
+![image-20231127102650284](F:\markdownImg\image-20231127102650284.png)
+
+**配置文件**
+
+**客户端：**发送数据
+
+sink数至少需要登录channel数
+
+本次需要像hdfs和本地存储文件，所以设定了两条channel，发送两个服务器端数据
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1 k2
+a1.channels = c1 c2
+
+# 将数据流复制给所有 channel
+a1.sources.r1.selector.type = replicating
+
+# Describe/configure the source
+a1.sources.r1.type = exec
+a1.sources.r1.command = tail -F /opt/hive/logs/hive.log
+a1.sources.r1.shell = /bin/bash -c
+
+# Describe the sink
+# sink 端的 avro 是一个数据发送者
+a1.sinks.k1.type = avro
+a1.sinks.k1.hostname = node1
+a1.sinks.k1.port = 4141
+
+a1.sinks.k2.type = avro
+a1.sinks.k2.hostname = node1 #ip地址，此次都是同一服务器
+a1.sinks.k2.port = 4142
+# Describe the channel
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+a1.channels.c2.type = memory
+a1.channels.c2.capacity = 1000
+a1.channels.c2.transactionCapacity = 100
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1 c2
+a1.sinks.k1.channel = c1
+a1.sinks.k2.channel = c2
+
+```
+
+
+
+**服务器端：**接受数据
+
+flume to hdfs
+
+```shell
+#Name the components on this agent
+a2.sources = r1
+a2.sinks = k1
+a2.channels = c1
+
+# Describe/configure the source
+# source 端的 avro 是一个数据接收服务
+a2.sources.r1.type = avro
+a2.sources.r1.bind = node1
+a2.sources.r1.port = 4141
+
+# Describe the sink
+a2.sinks.k1.type = hdfs
+a2.sinks.k1.hdfs.path = hdfs://node1:8020/flume2/%Y%m%d/%H
+
+#上传文件的前缀
+a2.sinks.k1.hdfs.filePrefix = flume2-
+#是否按照时间滚动文件夹
+a2.sinks.k1.hdfs.round = true
+#多少时间单位创建一个新的文件夹
+a2.sinks.k1.hdfs.roundValue = 1
+#重新定义时间单位
+a2.sinks.k1.hdfs.roundUnit = hour
+#是否使用本地时间戳
+a2.sinks.k1.hdfs.useLocalTimeStamp = true
+#积攒多少个 Event 才 flush 到 HDFS 一次
+a2.sinks.k1.hdfs.batchSize = 100
+#设置文件类型，可支持压缩
+a2.sinks.k1.hdfs.fileType = DataStream
+#多久生成一个新的文件
+a2.sinks.k1.hdfs.rollInterval = 30
+#设置每个文件的滚动大小大概是 128M
+a2.sinks.k1.hdfs.rollSize = 134217700
+#文件的滚动与 Event 数量无关
+a2.sinks.k1.hdfs.rollCount = 0
+# Describe the channel
+a2.channels.c1.type = memory
+a2.channels.c1.capacity = 1000
+a2.channels.c1.transactionCapacity = 100
+# Bind the source and sink to the channel
+a2.sources.r1.channels = c1
+a2.sinks.k1.channel = c1
+
+```
+
+flume to file
+
+```shell
+# Name the components on this agent
+a3.sources = r1
+a3.sinks = k1
+a3.channels = c2
+# Describe/configure the source
+a3.sources.r1.type = avro
+a3.sources.r1.bind = node1	#接受端服务器ip地址
+a3.sources.r1.port = 4142
+# Describe the sink
+a3.sinks.k1.type = file_roll
+a3.sinks.k1.sink.directory = /opt/data/flume3
+# Describe the channel
+a3.channels.c2.type = memory
+a3.channels.c2.capacity = 1000
+a3.channels.c2.transactionCapacity = 100
+# Bind the source and sink to the channel
+a3.sources.r1.channels = c2
+a3.sinks.k1.channel = c2
+
+```
+
+
+
+## 负载均衡和故障转移
+
+使用flume1 监控一个端口，其sink组中的sink分别对接flume2 和 flume3，采用FailoverSinkProcessor，实现故障转移的功能
+
+![image-20231127120033317](F:\markdownImg\image-20231127120033317.png)
+
+在正常情况下，只有优先级最高的agent才会进行抓取，其他节点不做动作
+
+**客户端配置**
+
+需要sinkgroups来为sink做分配规则
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.channels = c1
+a1.sinkgroups = g1
+a1.sinks = k1 k2
+# Describe/configure the source
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+a1.sinkgroups.g1.processor.type = failover
+a1.sinkgroups.g1.processor.priority.k1 = 5	#每个sink的规则
+a1.sinkgroups.g1.processor.priority.k2 = 10
+a1.sinkgroups.g1.processor.maxpenalty = 10000
+# Describe the sink
+a1.sinks.k1.type = avro
+a1.sinks.k1.hostname = node1
+a1.sinks.k1.port = 4141
+
+a1.sinks.k2.type = avro
+a1.sinks.k2.hostname = node1
+a1.sinks.k2.port = 4142
+# Describe the channel
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinkgroups.g1.sinks = k1 k2
+a1.sinks.k1.channel = c1
+a1.sinks.k2.channel = c1
+
+```
+
+
+
+**服务器端配置**
+
+```shell
+# Name the components on this agent
+a2.sources = r1
+a2.sinks = k1
+a2.channels = c1
+# Describe/configure the source
+a2.sources.r1.type = avro
+a2.sources.r1.bind = node1
+a2.sources.r1.port = 4141
+# Describe the sink
+a2.sinks.k1.type = logger
+# Describe the channel
+a2.channels.c1.type = memory
+a2.channels.c1.capacity = 1000
+a2.channels.c1.transactionCapacity = 100
+# Bind the source and sink to the channel
+a2.sources.r1.channels = c1
+a2.sinks.k1.channel = c1
+
+```
+
+
+
+### 负载均衡
+
+只需要将客户端的failover 更改去掉权重配置即可，
+
+服务端无需改动
+
+```shell
+a1.sinkgroups.g1.processor.type = load_balance
+```
+
+**负载轮询机制：**指的是sink轮流拉取数据，所以可能导致一个sink一段时间内接受不到数据的现象
+
+
+
+
+
+## Flume聚合
+
+![image-20231127195007098](F:\markdownImg\image-20231127195007098.png)
+
+客户端配置avro类型sink，并将ip改为服务端ip
+
+![image-20231127164150691](F:\markdownImg\image-20231127164150691.png)
+
+服务器端source配置avro类型，并监听本机的对应端口
+
+![image-20231127164230683](F:\markdownImg\image-20231127164230683.png)
+
+
+
+## 自定义拦截器
+
+![image-20231127194953647](F:\markdownImg\image-20231127194953647.png)
+
+**Multiplexing Channel Selector**
+
+```shell
+a1.sources = r1
+a1.channels = c1 c2 c3 c4
+a1.sources.r1.selector.type = multiplexing	#原则器类型
+a1.sources.r1.selector.header = type	#取表头的key
+a1.sources.r1.selector.mapping.CZ = c1	#（k，v）的值，放在对应的channel
+a1.sources.r1.selector.mapping.US = c2 c3
+a1.sources.r1.selector.default = c4		#匹配不到用默认值
+```
+
+
+
+**自定义拦截器代码**
+
+```java
+package com.atguigu.interceptor;
+import org.apache.flume.Context;
+import org.apache.flume.Event;
+import org.apache.flume.interceptor.Interceptor;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TypeInterceptor implements Interceptor {
+     private List<Event> addHeaderEvents = null;
+    @Override
+    public void initialize() {
+        //声明一个集合用于存放拦截器处理后的事件
+         addHeaderEvents = new ArrayList<>();
+    }
+
+    //单个事件处理方法
+    @Override
+    public Event intercept(Event event) {
+
+        //1.获取header&body
+        Map<String, String> headers = event.getHeaders();
+        String body = new String(event.getBody());
+
+        //2.根据body中是否包含“atguigu”添加不同的头信息
+        if(body.contains("atguigu")){
+            headers.put("type","atguigu");
+        }else {
+            headers.put("type","other");
+            
+        }
+		//如果需要过滤数据
+        //直接return null
+
+        //3.返回数据
+        return event;
+        
+    }
+
+    //批量事件处理方法
+    @Override
+    public List<Event> intercept(List<Event> events) {
+
+        //1.清空集合
+        addHeaderEvents.clear();
+
+        //2.遍历
+        for (Event event : events) {
+            addHeaderEvents.add(intercept(event));
+        }
+
+        //3.返回数据
+        return addHeaderEvents;
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    public static class Builder implements Interceptor.Builder{
+
+        @Override
+        public Interceptor build() {
+            return new TypeInterceptor();
+        }
+
+        @Override
+        public void configure(Context context) {
+
+        }
+    }
+}
+
+```
+
+之后讲代码打包，放入lib文件夹中，flume会根据全类名自动读取
+
+
+
+**自定义拦截器端配置**
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1 k2
+a1.channels = c1 c2
+
+# Describe/configure the source
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+
+a1.sources.r1.interceptors = i1
+a1.sources.r1.interceptors.i1.type = com.atguigu.inter.xxx$Builder#自定义拦截器全类名
+
+a1.sources.r1.selector.type = multiplexing
+a1.sources.r1.selector.header = type	#数据头部中的key
+a1.sources.r1.selector.mapping.first = c1	#数据头部对应key的值
+a1.sources.r1.selector.mapping.second = c2
+
+# Describe the sink
+a1.sinks.k1.type = avro
+a1.sinks.k1.hostname = hadoop103
+a1.sinks.k1.port = 4141
+a1.sinks.k2.type=avro
+a1.sinks.k2.hostname = hadoop104
+a1.sinks.k2.port = 4242
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+# Use a channel which buffers events in memory
+a1.channels.c2.type = memory
+a1.channels.c2.capacity = 1000
+a1.channels.c2.transactionCapacity = 100
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1 c2
+a1.sinks.k1.channel = c1
+a1.sinks.k2.channel = c2
+
+```
+
+接收端按avro source配置即可
+
+
+
+## 自定义Source
+
+![image-20231127212648385](F:\markdownImg\image-20231127212648385.png)
+
+![image-20231127212705181](F:\markdownImg\image-20231127212705181.png)
+
+**自定义Source java代码**
+
+```java
+public class MySource extends AbstractSource implements Configurable,PollableSource {
+
+    //自定义Source类接受参数
+    private String prefix;
+    private String suffix;
+    private Long delay;
+    
+    //头信息
+    HashMap<String,String> header = new HashMap<>();
+
+    @Override
+    public void configure(Context context) {
+
+        //此项为source自定义属性
+        //目的从配置文件中获取数据
+        //类似于 a1.source.r1.type 中的type
+        prefix = context.getString("pre","pre-");
+        suffix = context.getString("sub");
+        delay = context.getLong("delay",2000L);
+
+    }
+
+    @Override
+    public Status process() throws EventDeliveryException {
+
+
+
+
+        //2.循环创建事件信息，传给channel
+        try {
+            for(int i = 0; i < 5; i++){
+                //声明事件
+                Event event = new SimpleEvent();
+                event.setHeaders(header);
+                event.setBody((prefix + "atguigu:"+i+suffix).getBytes());
+                getChannelProcessor().processEvent(event);
+            }
+
+            Thread.sleep(delay);
+            return Status.READY;//函数返回status枚举类
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Status.BACKOFF;
+        }
+    }
+
+    @Override
+    public long getBackOffSleepIncrement() {
+        return 0;
+    }
+
+    @Override
+    public long getMaxBackOffSleepInterval() {
+        return 0;
+    }
+
+}
+```
+
+**使用自定义Source配置**
+
+```shell
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# Describe/configure the source
+a1.sources.r1.type = com.atguigu.source.MySource
+a1.sources.r1.pre =  sb-
+a1.sources.r1.sub =  .fk
+a1.sources.r1.delay = 5000
+
+# Describe the sink
+a1.sinks.k1.type = logger
+a1.sinks.k1.maxBytesToLog = 32
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+
+```
+
+
+
+## 自定义Sinks
+
+```java
+public class MySink extends AbstractSink implements Configurable {
+    //声明数据的前后缀
+    private String prefix;
+    private String suffix;
+
+    //创建Logger对象
+    Logger logger =  LoggerFactory.getLogger(MySink.class);
+
+
+    @Override
+    public Status process() throws EventDeliveryException {
+        //1.获取channel并开启事务
+        Channel channel = getChannel();
+        Transaction transaction = channel.getTransaction();
+        transaction.begin();
+
+        //2.从Channel中抓取数据打印到控制台
+        try{
+
+            //抓取数据
+            //一直抓取，知道获取到数据
+            Event event;
+            do {
+                event = channel.take();
+            } while (event == null);
+
+            //处理数据
+            logger.info(prefix+new String(event.getBody())+suffix);
+
+            //提交事务
+            transaction.commit();
+            return Status.READY;
+
+        }catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            return Status.BACKOFF;
+        }finally {
+            transaction.close();
+        }
+    }
+
+    @Override
+    public void configure(Context context) {
+
+        prefix = context.getString("pre","pre-");
+        suffix = context.getString("sub");
+    }
+}
+```
+
+**自定义sink参数**
+
+```shell
+#Describe the sink
+a1.sinks.k1.type = com.customer.sink.MySink
+a1.sinks.k1.pre = -pre
+a1.sinks.k1.sub = -bs
+```
+
+
+
+# Flume 数据流监控
+
+Ganglia
